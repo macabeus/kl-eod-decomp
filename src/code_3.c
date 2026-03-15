@@ -58,7 +58,18 @@ INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08042bee);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08042e66);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08043af4);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08043b34);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08043b80);
+/*
+ * Allocates a buffer and decompresses/copies data into it.
+ * Reads the size from the first word of the source (masking off the top bit),
+ * allocates that many bytes, then calls FUN_08043af4 to fill the buffer.
+ *   src: pointer to compressed data header (first word = size | flags)
+ *   returns: pointer to the newly allocated and filled buffer
+ */
+u32 AllocAndDecompress(u32 *src) {
+    u32 buf = thunk_FUN_080001e0(*src & 0x7FFFFFFF, 0);
+    FUN_08043af4(buf, (u32)src);
+    return buf;
+}
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08043ba4);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080441c8);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080446fa);
