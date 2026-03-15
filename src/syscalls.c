@@ -37,4 +37,11 @@ u32 BiosSquareRoot(u32 val) {
     asm("swi #8");
 }
 
-INCLUDE_ASM("asm/nonmatchings/syscalls", FUN_08051448);
+/*
+ * BIOS VBlankIntrWait (SWI 0x05): halts until VBlank interrupt.
+ *   Clears r2 (flags=0) before issuing SWI.
+ *   no return value
+ */
+void VBlankIntrWait(void) {
+    asm("movs r2, #0\n\tswi #5");
+}
