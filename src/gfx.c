@@ -77,7 +77,21 @@ void ShutdownGfxStream(void) {
     thunk_FUN_0800020c(*(u32 *)0x030007C8);
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c0ec);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c1a0);
+/*
+ * Reads a command byte from the data stream, splits it into a 7-bit value
+ * and a 1-bit flag, then dispatches to FUN_0804c0ec. Advances stream by 3.
+ *   no parameters (reads from global data stream pointer at 0x03004D84)
+ *   no return value
+ */
+void DispatchStreamCommand_C0EC(void) {
+    u8 **gp = (u8 **)0x03004D84;
+    u8 *ptr = *gp;
+    u8 byte = ptr[2];
+    u8 val = byte & 0x7F;
+    u8 flag = byte >> 7;
+    *gp = ptr + 3;
+    FUN_0804c0ec(val, flag);
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", sub_0804C1C0);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c1fc);
 /*
