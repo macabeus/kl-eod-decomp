@@ -28,5 +28,13 @@ void LZ77UnCompWram(void *src, void *dest) {
     asm("swi #17");
 }
 
-INCLUDE_ASM("asm/nonmatchings/syscalls", FUN_08051444);
+/*
+ * BIOS Sqrt (SWI 0x08): calculates square root.
+ *   r0: input value
+ *   returns: square root in r0
+ */
+u32 BiosSquareRoot(u32 val) {
+    asm("swi #8");
+}
+
 INCLUDE_ASM("asm/nonmatchings/syscalls", FUN_08051448);
