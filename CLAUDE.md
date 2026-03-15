@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Matching decompilation of **Klonoa: Empire of Dreams** (GBA, USA). The goal is to produce C source that compiles to a byte-for-byte identical ROM using `agbcc` (GCC 2.95 fork for GBA). Currently 2 of 690 functions are decompiled.
+Matching decompilation of **Klonoa: Empire of Dreams** (GBA, USA). The goal is to produce C source that compiles to a byte-for-byte identical ROM using `agbcc` (GCC 2.95 fork for GBA).
 
 ## Build Commands
 
