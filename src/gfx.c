@@ -166,7 +166,18 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7a0);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7d2);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7fa);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e814);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e850);
+/*
+ * Enables VBlank interrupt and VBlank IRQ status, then calls
+ * FUN_08050648 to set up the handler. Advances the data stream by 2.
+ *   no parameters
+ *   no return value
+ */
+void EnableVBlankHandler(void) {
+    *(vu16 *)0x04000200 |= 1;
+    *(vu16 *)0x04000004 |= 8;
+    FUN_08050648();
+    *(u8 **)0x03004D84 += 2;
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e884);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e8fe);
 /*
