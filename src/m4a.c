@@ -29,7 +29,14 @@ INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804fe6c);
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804fea0);
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804ff08);
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804ff44);
-INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804ffbc);
+/*
+ * Wrapper that calls FUN_0804f294 to initialize the sound engine.
+ *   no parameters
+ *   no return value
+ */
+void SoundInit(void) {
+    FUN_0804f294();
+}
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804ffc8);
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804fff6);
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_08050042);
