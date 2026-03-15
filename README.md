@@ -155,4 +155,4 @@ To set up CI, add this [repository secret](https://docs.github.com/en/actions/se
 
 - **Compiler**: agbcc (GCC 2.95) — confirmed via function epilogue analysis
 - **Build**: Matching (`klonoa-eod.gba: OK`)
-- **Functions**: 463 total, 2 decompiled to C
+- **Functions**: 463 total, 29 decompiled to C
