@@ -225,7 +225,31 @@ void EnableVBlankHandler(void) {
     FUN_08050648();
     *(u8 **)0x03004D84 += 2;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e884);
+/*
+ * Enables VBlank interrupt and IRQ, sets up handler via FUN_08050648,
+ * then dispatches a music stream command via FUN_0804ffc8 using byte[2].
+ * Advances the data stream pointer by 3.
+ *   no parameters (reads from global data stream pointer at 0x03004D84)
+ *   no return value
+ */
+void EnableVBlankAndDispatchMusic(void) {
+    u8 **gp = (u8 **)0x03004D84;
+    u8 *ptr = *gp;
+
+    if (ptr[2] <= 0x22) {
+        *(vu16 *)0x04000200 |= 1;
+        *(vu16 *)0x04000004 |= 8;
+        FUN_08050648();
+        FUN_0804ffc8((*gp)[2]);
+    } else {
+        *(vu16 *)0x04000200 |= 1;
+        *(vu16 *)0x04000004 |= 8;
+        FUN_08050648();
+        FUN_0804ffc8((*gp)[2]);
+    }
+
+    *(u8 **)0x03004D84 += 3;
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e8fe);
 /*
  * Enables VBlank interrupt and VBlank IRQ status, then calls two
