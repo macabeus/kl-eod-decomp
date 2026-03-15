@@ -192,7 +192,24 @@ void ProcessStreamCommand_50094(void) {
     FUN_08050094((*gp)[2]);
     *gp += 3;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7a0);
+/*
+ * Dispatches a sound/music stream command based on byte[2] of the data stream.
+ * If byte[2] <= 0x22, passes it directly; otherwise re-reads and passes it.
+ * Both paths call FUN_0804ffc8. Advances the stream pointer by 3.
+ *   no parameters (reads from global data stream pointer at 0x03004D84)
+ *   no return value
+ */
+void DispatchMusicStreamCommand(void) {
+    u8 *ptr = *(u8 **)0x03004D84;
+
+    if (ptr[2] <= 0x22) {
+        FUN_0804ffc8(ptr[2]);
+    } else {
+        FUN_0804ffc8(ptr[2]);
+    }
+
+    *(u8 **)0x03004D84 += 3;
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7d2);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7fa);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e814);
