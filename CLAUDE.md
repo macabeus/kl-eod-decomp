@@ -47,6 +47,14 @@ Each source file in `src/` represents a module defined in `klonoa-eod-decomp.tom
 - Include order must never be reordered (affects matching)
 - Format with `make format` before committing
 
+## Policies
+
+- **Always use a Python venv.** Never install packages globally. Activate before any `python3` or `pip` command:
+  ```bash
+  source venv/bin/activate
+  ```
+  If the venv doesn't exist yet, create it with `python3 -m venv venv` and install deps: `pip install -r requirements.txt`.
+
 ## Key Configuration Files
 
 - **klonoa-eod-decomp.toml**: Module start addresses and function renames
