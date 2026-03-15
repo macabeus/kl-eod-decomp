@@ -86,6 +86,13 @@ _LDR_LABEL_RE = re.compile(r"\bldr\s+\w+,\s+(\w+)")
 # INCLUDE_ASM in C sources
 _INCLUDE_ASM_RE = re.compile(r'INCLUDE_ASM\("asm/nonmatchings/(\w+)",\s*(\w+)\)')
 
+# C function definition (detects decompiled functions)
+# Matches "type FUN_xxx(" but not extern declarations, calls, or INCLUDE_ASM
+_C_FUNC_DEF_RE = re.compile(
+    r"^(?!extern\b)\w[\w\s\*]+"
+    r"(FUN_[0-9A-Fa-f]+|sub_[0-9A-Fa-f]+)\s*\("
+)
+
 # Address extraction from Luvdis output
 _ADDR_COMMENT_RE = re.compile(r"@ ([0-9A-Fa-f]{8})")
 _NAME_ADDR_RE = re.compile(r"(?:FUN_|sub_|thunk_FUN_|thunk_sub_)([0-9A-Fa-f]{6,8})")
@@ -535,6 +542,7 @@ def _update_c_sources(merged_groups, module_funcs):
     src_dir = os.path.join(ROOT, "src")
 
     # Map module -> C filename, and collect all existing INCLUDE_ASM names
+    # and decompiled function definitions
     module_to_c = {}
     existing_in_c = set()
     for fname in os.listdir(src_dir):
@@ -546,6 +554,10 @@ def _update_c_sources(merged_groups, module_funcs):
                 if m:
                     module_to_c.setdefault(m.group(1), fname)
                     existing_in_c.add(m.group(2))
+                else:
+                    m = _C_FUNC_DEF_RE.search(line)
+                    if m:
+                        existing_in_c.add(m.group(1))
 
     # New functions: in module_funcs but not in C, not absorbed, not renamed
     new_by_module = {}  # module -> [(addr, name)]
