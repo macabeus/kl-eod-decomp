@@ -28,7 +28,22 @@ INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ac18);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ad94);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ae88);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803af38);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b074);
+/*
+ * Iterates over entity slots 0-6 and updates active ones.
+ * For each slot, checks if the entity is active via FUN_0803ac18.
+ * If active, calls FUN_0803ad94 and FUN_0803af38 to update it.
+ *   no parameters
+ *   no return value
+ */
+void UpdateEntities(void) {
+    u8 i;
+    for (i = 0; i <= 6; i++) {
+        if ((u8)FUN_0803ac18(i)) {
+            FUN_0803ad94(i);
+            FUN_0803af38(i);
+        }
+    }
+}
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b0a0);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b378);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b3d2);
