@@ -49,7 +49,33 @@ u32 ReadUnalignedU32(u8 *ptr) {
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b28a);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b2a0);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b2ec);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b424);
+/*
+ * Decompresses data from ROM, DMA-copies it to a destination,
+ * then frees the decompression buffer. Waits for DMA to complete.
+ *   src: pointer to compressed data
+ *   dest: DMA destination address (VRAM, palette RAM, etc.)
+ *   byteCount: number of bytes to transfer
+ */
+void DecompressAndDmaCopy(u32 *src, u32 dest, u32 byteCount) {
+    u32 buf;
+    vu32 *dma3;
+    u32 ctrl;
+
+    buf = AllocAndDecompress(src);
+    FUN_08043af4(buf, (u32)src);
+
+    dma3 = (vu32 *)0x040000D4;
+    dma3[0] = buf + 4;
+    dma3[1] = dest;
+    ctrl = (byteCount >> 1) | 0x80000000;
+    dma3[2] = ctrl;
+    (void)dma3[2];
+
+    while (dma3[2] & 0x80000000)
+        ;
+
+    thunk_FUN_0800020c(buf);
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b464);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b4b0);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b920);
