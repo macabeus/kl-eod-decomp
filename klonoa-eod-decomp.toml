@@ -145,6 +145,10 @@ FUN_0800043c = "Abs"
 FUN_08000448 = "StrCmp"
 FUN_0800045e = "ReturnOne"
 FUN_08000460 = "StrCpy"
+FUN_080006cc = "ReadKeyInput"
+FUN_0800072c = "ProcessInputAndTimers"
+sub_0800087C = "LoadSpriteFrame"
+FUN_080008dc = "FreeAllDecompBuffers"
 FUN_08000948 = "FixedMul8"
 
 # M4A / sound engine

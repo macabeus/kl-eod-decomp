@@ -53,6 +53,21 @@
  * Used to verify the sound engine is properly initialized. */
 #define SAPPY_MAGIC              0x68736D53
 
+/* ── Input System ── */
+
+/* Current frame pressed keys (active-high, edge-detected).
+ * Written by ReadKeyInput each frame. */
+#define gKeysPressed             (*(u16 *)0x03004DA0)
+
+/* Previous frame raw key state (active-high).
+ * Used for edge detection in ReadKeyInput. */
+#define gKeysPrevious            (*(u16 *)0x030051E4)
+
+/* Extended input state for ProcessInputAndTimers.
+ * Separate from the simple ReadKeyInput state. */
+#define gInputState              (*(u16 *)0x03004668)
+#define gInputPrevious           (*(u16 *)0x0300362C)
+
 /* ── Game State ── */
 
 /* Pause flag: when non-zero, GameUpdate skips the main update loop. */
@@ -60,6 +75,12 @@
 
 /* Frame/tick counter — decremented each frame, byte-sized. */
 #define gFrameCounter            (*(u8 *)0x03005498)
+
+/* Sound reset flag: when non-zero, VBlankHandler calls SoundInit. */
+#define gSoundResetFlag          (*(u8 *)0x03003420)
+
+/* Interrupt Master Enable write address for VBlank acknowledge. */
+#define gIMEAcknowledge          (*(u16 *)0x03007FF8)
 
 /* ── Entity / Object System ── */
 
@@ -180,6 +201,14 @@
 #define gViewportState           ((u8 *)0x03005284)
 
 /* ── ROM Data Tables ── */
+
+/* Input/state dispatch table used by ProcessInputAndTimers.
+ * Array of function pointers / state transition entries. */
+#define ROM_STATE_DISPATCH_TABLE 0x080D9150
+
+/* Sprite tileset sub-table used by LoadSpriteFrame.
+ * Indexed by frame number within a tileset. */
+#define ROM_SPRITE_SUBTABLE      0x0818B8A8
 
 /* Sprite frame/animation data table.
  * Array of {u32 count, u32 dataPtr} pairs for sprite animations.
