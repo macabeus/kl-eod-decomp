@@ -46,7 +46,7 @@ s16 ReadUnalignedS16(u8 *ptr) {
 u32 ReadUnalignedU32(u8 *ptr) {
     return ptr[0] + (ptr[1] << 8) + (ptr[2] << 16) + (ptr[3] << 24);
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b28a);
+INCLUDE_ASM("asm/nonmatchings/gfx", ReadUnalignedU32_Alt);
 INCLUDE_ASM("asm/nonmatchings/gfx", CalcBGScrollMapSize);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateAffineRegisters);
 /**
@@ -134,7 +134,7 @@ INCLUDE_ASM("asm/nonmatchings/gfx", AllocAndClearGfxBuffer);
  */
 INCLUDE_ASM("asm/nonmatchings/gfx", FreeGfxBuffer);
 
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bb86);
+INCLUDE_ASM("asm/nonmatchings/gfx", DeadCode_0804bb86);
 
 /**
  * AllocAndClearBuffer_52A4: allocates and zero-fills a 0x480-byte buffer.
