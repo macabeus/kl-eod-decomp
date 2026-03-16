@@ -2,9 +2,9 @@
 #define INCLUDE_ASM_H
 
 #ifndef INCLUDE_ASM
-#define INCLUDE_ASM(FOLDER, NAME)                                                                                      \
-    asm(".syntax unified\n"                                                                                            \
-        ".include \"" FOLDER "/" #NAME ".s\"\n"                                                                        \
+#define INCLUDE_ASM(FOLDER, NAME)                                                                                                     \
+    asm(".syntax unified\n"                                                                                                           \
+        ".include \"" FOLDER "/" #NAME ".s\"\n"                                                                                       \
         ".syntax divided\n")
 #endif
 

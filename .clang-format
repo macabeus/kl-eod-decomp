@@ -14,7 +14,7 @@ IndentGotoLabels: true
 IndentPPDirectives: None
 
 # Line length
-ColumnLimit: 120
+ColumnLimit: 135
 
 # Braces: opening brace on same line (K&R / Java style)
 BreakBeforeBraces: Attach
