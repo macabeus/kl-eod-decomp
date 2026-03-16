@@ -151,7 +151,31 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bd8a);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bdb4);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804be08);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804be58);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bf7c);
+/**
+ * ShutdownGfxSubsystem: tears down the graphics subsystem on scene exit.
+ *
+ * Saves the current scene callback, disables HBlank IRQ and HBlank STAT,
+ * then shuts down the graphics stream, sound, and frees all three
+ * dynamically allocated graphics buffers.
+ */
+void ShutdownGfxSubsystem(void)
+{
+{
+    vu32 *dest = (vu32 *)0x03000814;
+    u32 *src = (u32 *)0x03004C20;
+    *dest = src[1];
+}
+
+    *(vu16 *)0x04000200 &= 0xFFFD; /* REG_IE &= ~INT_HBLANK */
+    *(vu16 *)0x04000004 &= 0xFFEF; /* REG_DISPSTAT &= ~HBLANK_IRQ */
+
+    ShutdownGfxStream();
+    FreeSoundStruct();
+    FreeBuffer_52A4();
+    FreeGfxBuffer();
+    FreeDecompStreamBuffer();
+    FUN_080500fc();
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bfd0);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c050);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c0be);
