@@ -97,7 +97,36 @@ void DecompressData(u32 dest, u32 src)
         LZ77UnCompWram((u8 *)src + 4, (u8 *)dest);
     }
 }
-INCLUDE_ASM("asm/nonmatchings/code_3", DecompressAndCopyToPalette); /* CopyDataToVram */
+/**
+ * DecompressAndCopyToPalette: decompress and DMA to palette or OBJ VRAM.
+ *
+ * Allocates a buffer sized from the source header, decompresses the data,
+ * DMAs the result (skipping the 4-byte sub-header) as 16-bit transfers to
+ * the destination, then frees the buffer.
+ *
+ *   src:  ROM pointer to compressed data (first word = size | flags)
+ *   dest: destination address (palette RAM or OBJ VRAM)
+ *   size: byte count for DMA transfer
+ */
+void DecompressAndCopyToPalette(u32 *src, u32 dest, u16 size)
+{
+    u32 buf;
+    vu32 *dma3;
+
+    buf = thunk_FUN_080001e0(*src & 0x7FFFFFFF, 0);
+    DecompressData(buf, (u32)src);
+
+    dma3 = (vu32 *)0x040000D4;
+    dma3[0] = buf + 4;
+    dma3[1] = dest;
+    dma3[2] = ((u32)size >> 1) | 0x80000000;
+    (void)dma3[2];
+
+    while (dma3[2] & 0x80000000)
+        ;
+
+    thunk_FUN_0800020c(buf);
+}
 /*
  * Allocates a buffer and decompresses/copies data into it.
  * Reads the size from the first word of the source (masking off the top bit),
