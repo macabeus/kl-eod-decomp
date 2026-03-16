@@ -7,15 +7,15 @@ INCLUDE_ASM("asm/nonmatchings/gfx", InitGfxState);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGScrollRegisters);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGTileAnimation);
 INCLUDE_ASM("asm/nonmatchings/gfx", FadeOutController);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_080487b4);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateSceneTransition);
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupSceneGfx);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_080491c0);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_08049348);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateUIElementAnimation);
+INCLUDE_ASM("asm/nonmatchings/gfx", InitSceneGfxByType);
 INCLUDE_ASM("asm/nonmatchings/gfx", LoadBGPalette);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGPaletteAnimation);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_08049efc);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804a070);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804af00);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateMenuCursorInput);
+INCLUDE_ASM("asm/nonmatchings/gfx", SetupLevelTilemap);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateWorldMapScene);
 
 /*
  * Reads an unsigned 16-bit value from a potentially unaligned address.
@@ -47,8 +47,8 @@ u32 ReadUnalignedU32(u8 *ptr) {
     return ptr[0] + (ptr[1] << 8) + (ptr[2] << 16) + (ptr[3] << 24);
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b28a);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b2a0);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b2ec);
+INCLUDE_ASM("asm/nonmatchings/gfx", CalcBGScrollMapSize);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateAffineRegisters);
 /**
  * DecompressAndDmaCopy: decompress ROM data and DMA to a VRAM destination.
  *
@@ -150,7 +150,7 @@ void FreeBuffer_52A4(void) {
     thunk_FUN_0800020c(gBuffer_52A4);
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupWorldMapBG);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bd10);
+INCLUDE_ASM("asm/nonmatchings/gfx", SetupTextBGLayer);
 INCLUDE_ASM("asm/nonmatchings/gfx", ClearScreenBufferB_Alt);
 /**
  * InitLevelStateDefaults: sets default dimensions, scroll, window regs.
@@ -159,7 +159,7 @@ INCLUDE_ASM("asm/nonmatchings/gfx", ClearScreenBufferB_Alt);
  */
 INCLUDE_ASM("asm/nonmatchings/gfx", InitLevelStateDefaults);
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupGfxCallbacks);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804be58);
+INCLUDE_ASM("asm/nonmatchings/gfx", InitWorldMapGfx);
 /**
  * ShutdownGfxSubsystem: tears down the graphics subsystem on scene exit.
  *
@@ -251,11 +251,11 @@ void ProcessStreamCommand_C218(void) {
     gStreamPtr += 3;
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ConfigureSprite);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c300);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c3a4);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c484);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c598);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c60c);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetupOAMSpriteGroup);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetEntityFlags);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetEntityTransform);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGPriority);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_FillBGTilemap);
 /**
  * StreamCmd_EnableMosaic: enables mosaic on BG2/BG3 and sets mosaic level.
  *
@@ -273,7 +273,7 @@ void StreamCmd_EnableMosaic(void)
     *(u8 *)0x030007D8 = gStreamPtr[2] & 0x0F;
     gStreamPtr += 3;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c6e0);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetSpriteAttrs);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetRenderMode);
 INCLUDE_ASM("asm/nonmatchings/gfx", DispatchLevelLayerSetup);
 /**
@@ -319,42 +319,42 @@ void WriteStreamValue_Dual(void) {
 
     *gp += 4;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c898);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c8f4);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c9a8);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804ca6c);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804cac8);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804cc4c);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804cf26);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804cf80);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804cfd0);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804d0b0);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804d32c);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804d408);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804d4d8);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804d63c);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804d798);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804d8d4);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804d99c);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804da60);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804db38);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804dbd4);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804dc64);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804dccc);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804dd48);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804de34);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804debc);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804df80);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e008);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e0e8);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e3d6);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateCursorBlink);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessAnimationSteps);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateLinearInterpolation);
+INCLUDE_ASM("asm/nonmatchings/gfx", CalcSinCosVelocity);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessMotionStep);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessMotionStepExtended);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessStaticBGScroll);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessFrameAnimation);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessSpriteOscillation);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessStarfieldEffect);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitStarfield);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitLinearMotion);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitLinearMotionExt);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitRotationMotion);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitMotionWithPalette);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitAngleMotion);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitOscillation);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitOscillationExt);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitStaticScroll);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitFrameAnimation);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessHBlankWait);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitHBlankWait);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitSpriteWave);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitButtonWait);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_StopMotion);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessScreenFade);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdatePaletteFadeStep);
+INCLUDE_ASM("asm/nonmatchings/gfx", ProcessSceneTransitionOut);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGModeTiled);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ClearRenderMode);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e448);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e568);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetTimerAndMode);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ToggleDisplayFlag);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ToggleLayerFlag);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBlendMode);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e634);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e6b6);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetScrollPosition);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGScreenSize);
 /**
  * StreamCmd_SetWindowRegs: writes REG_WININ/WINOUT from stream bytes[2-5].
  * Advances stream by 6.
@@ -371,13 +371,13 @@ void StreamCmd_StopMusic(void)
     gStreamPtr += 2;
 }
 /*
- * Reads a command byte from the data stream and processes it via FUN_08050094.
+ * Reads a command byte from the data stream and processes it via m4aMPlayCommand.
  * Byte[2] is the command argument. Advances the stream pointer by 3.
  *   no parameters (reads from global data stream pointer at 0x03004D84)
  *   no return value
  */
 void ProcessStreamCommand_50094(void) {
-    FUN_08050094(gStreamPtr[2]);
+    m4aMPlayCommand(gStreamPtr[2]);
     gStreamPtr += 3;
 }
 /*

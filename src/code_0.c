@@ -7,20 +7,20 @@ INCLUDE_ASM("asm/nonmatchings/code_0", FUN_08005fa4); /* RenderHUDBottom */
 INCLUDE_ASM("asm/nonmatchings/code_0", FUN_080070a0); /* RenderMenuUI */
 INCLUDE_ASM("asm/nonmatchings/code_0", FUN_08009064); /* RenderDialogBox */
 INCLUDE_ASM("asm/nonmatchings/code_0", FUN_080098c8); /* RenderDialogSprites */
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800a468); /* InitOamEntries */
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800a49c);
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800a5b8);
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800a71c);
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800a804);
+INCLUDE_ASM("asm/nonmatchings/code_0", InitOamEntries); /* InitOamEntries */
+INCLUDE_ASM("asm/nonmatchings/code_0", TransformEntityScreenPositions);
+INCLUDE_ASM("asm/nonmatchings/code_0", TransformSingleEntityToScreen);
+INCLUDE_ASM("asm/nonmatchings/code_0", TransformAllEntitiesToScreen);
+INCLUDE_ASM("asm/nonmatchings/code_0", HandlePauseMenuInput);
 INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800ac34); /* UpdateUIState */
 INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800b3c0); /* RenderCharacterTiles */
 INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800bef0); /* UpdateTextScroll */
-INCLUDE_ASM("asm/nonmatchings/code_0", sub_0800BFF4);
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800c108);
-INCLUDE_ASM("asm/nonmatchings/code_0", sub_0800C45C);
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800c564);
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800c7ee);
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800c902);
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800ca0c); /* SetupDisplayConfig */
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800d0c6);
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_0800d188); /* TextStateMachine — master UI/text state machine */
+INCLUDE_ASM("asm/nonmatchings/code_0", VBlankCallback_Gameplay);
+INCLUDE_ASM("asm/nonmatchings/code_0", AnimatePaletteEffects);
+INCLUDE_ASM("asm/nonmatchings/code_0", VBlankCallback_Dialog);
+INCLUDE_ASM("asm/nonmatchings/code_0", VBlankCallback_MapScreen);
+INCLUDE_ASM("asm/nonmatchings/code_0", VBlankCallback_GameplayWithHUD);
+INCLUDE_ASM("asm/nonmatchings/code_0", VBlankCallback_MinimalHW);
+INCLUDE_ASM("asm/nonmatchings/code_0", VBlankCallback_Cutscene); /* SetupDisplayConfig */
+INCLUDE_ASM("asm/nonmatchings/code_0", VBlankCallback_TitleScreen);
+INCLUDE_ASM("asm/nonmatchings/code_0", VBlankCallback_Credits); /* TextStateMachine — master UI/text state machine */

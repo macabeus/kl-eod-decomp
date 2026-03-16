@@ -21,9 +21,9 @@ INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08037dbc);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803881c);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080392a4);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08039920);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08039d8c);
-INCLUDE_ASM("asm/nonmatchings/code_3", sub_0803A22C);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803a410);
+INCLUDE_ASM("asm/nonmatchings/code_3", InitGameplayState);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateOamSortOrder);
+INCLUDE_ASM("asm/nonmatchings/code_3", ProcessInputAndUpdateEntities);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803aaa0);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ac18); /* IsEntityActive */
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ad94); /* UpdateEntityState */
@@ -48,12 +48,12 @@ void UpdateEntities(void) {
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b0a0);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b378);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b3d2);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b602);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803bf84);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateAllEntities);
+INCLUDE_ASM("asm/nonmatchings/code_3", GameplayMainLoop);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803c808);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ce16);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803cf08);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803d140);
+INCLUDE_ASM("asm/nonmatchings/code_3", GetEntityLookupData);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803d15c);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803d4ac);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803d90c);
@@ -139,15 +139,15 @@ u32 AllocAndDecompress(u32 *src) {
     DecompressData(buf, (u32)src);
     return buf;
 }
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08043ba4);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080441c8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080446fa);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08044bb8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08044f6c); /* DecompressLZ77 */
+INCLUDE_ASM("asm/nonmatchings/code_3", InitSceneGraphics);
+INCLUDE_ASM("asm/nonmatchings/code_3", RunSceneScript);
+INCLUDE_ASM("asm/nonmatchings/code_3", RunTitleSequence);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateStageSelectScreen);
+INCLUDE_ASM("asm/nonmatchings/code_3", DecompressAndLoadLevel); /* DecompressLZ77 */
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0804517c);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080452ea);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0804539a);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080453f0);
+INCLUDE_ASM("asm/nonmatchings/code_3", InitGameplayFromWorldMap);
 /*
  * Runs the per-frame game update. If the pause flag at 0x030034E4 is zero,
  * calls four game subsystem update functions. Always calls FUN_08025ba4
@@ -178,9 +178,9 @@ INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08046f6c);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0804713e);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080471f4);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080472b0);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080472c8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080475dc);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080477a8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08047b1e);
+INCLUDE_ASM("asm/nonmatchings/code_3", ConfigureInterruptsForGameplay);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerEntity);
+INCLUDE_ASM("asm/nonmatchings/code_3", MainGameFrameLoop);
+INCLUDE_ASM("asm/nonmatchings/code_3", InitFadeTransition);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08047eca);
 INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0804802a);

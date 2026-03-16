@@ -1,12 +1,12 @@
 #include "global.h"
 #include "include_asm.h"
 
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08000ac8);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08000bd4);
+INCLUDE_ASM("asm/nonmatchings/engine", VBlankHandler_ModeA);
+INCLUDE_ASM("asm/nonmatchings/engine", VBlankHandler_ModeB);
 INCLUDE_ASM("asm/nonmatchings/engine", VBlankDmaTransfer);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08000dc2);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08000e16);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08000e6a);
+INCLUDE_ASM("asm/nonmatchings/engine", VBlankHandler_OamOnly);
+INCLUDE_ASM("asm/nonmatchings/engine", VBlankHandler_OamOnlyAlt);
+INCLUDE_ASM("asm/nonmatchings/engine", VBlankHandler_WithWindowScroll);
 /**
  * UpdateFadeEffect: applies brightness fade using REG_BLDY.
  *
@@ -24,21 +24,21 @@ void UpdateFadeEffect(void)
     }
 }
 INCLUDE_ASM("asm/nonmatchings/engine", HBlankScrollUpdate);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08000fce);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08001028);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_0800107c);
+INCLUDE_ASM("asm/nonmatchings/engine", UpdateAffineBGParams);
+INCLUDE_ASM("asm/nonmatchings/engine", UpdateWindowCircleEffect);
+INCLUDE_ASM("asm/nonmatchings/engine", UpdateBGScrollWithWave);
 INCLUDE_ASM("asm/nonmatchings/engine", WaitVBlankAndClearMosaic);
 INCLUDE_ASM("asm/nonmatchings/engine", AcknowledgeInterrupt);
 INCLUDE_ASM("asm/nonmatchings/engine", InitLevelBG); /* InitGraphicsSystem — full GFX init: decompress assets, configure BG/VRAM */
 INCLUDE_ASM("asm/nonmatchings/engine", ScrollBGLayer);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08001f58);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_0800247c);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_080027c4);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08002ac4);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08002fd0);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_0800343c);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_0800350c);
-INCLUDE_ASM("asm/nonmatchings/engine", FUN_08003750);
+INCLUDE_ASM("asm/nonmatchings/engine", ProcessOamSpriteLayout);
+INCLUDE_ASM("asm/nonmatchings/engine", UpdateCameraScroll);
+INCLUDE_ASM("asm/nonmatchings/engine", UpdateCameraScrollPlayer2);
+INCLUDE_ASM("asm/nonmatchings/engine", CameraModeSwitchHandler);
+INCLUDE_ASM("asm/nonmatchings/engine", InitLevelFromROMTable);
+INCLUDE_ASM("asm/nonmatchings/engine", ScrollBGColumnLoad);
+INCLUDE_ASM("asm/nonmatchings/engine", InitVideoAndBG);
+INCLUDE_ASM("asm/nonmatchings/engine", ComputeRotationMatrix);
 INCLUDE_ASM("asm/nonmatchings/engine", ResetVideoRegisters); /* RenderFrame — per-frame rendering dispatch */
 INCLUDE_ASM("asm/nonmatchings/engine", ClearVideoState);
 INCLUDE_ASM("asm/nonmatchings/engine", ClearOamBufferExtended);
