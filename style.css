@@ -333,6 +333,78 @@ footer {
     margin-top: 3rem;
 }
 
+/* ROM Picker */
+.rom-picker-box {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.rom-picker-box h2 {
+    border: none;
+    margin-top: 0;
+    color: var(--text-heading);
+}
+
+.rom-drop-zone {
+    margin: 1.5rem 0 1rem;
+    padding: 2.5rem 1.5rem;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.rom-drop-zone:hover,
+.rom-drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(233, 69, 96, 0.05);
+}
+
+.rom-drop-label {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.rom-error {
+    color: var(--accent);
+    font-size: 0.9rem;
+    min-height: 1.4em;
+}
+
+.rom-status-loaded {
+    margin-left: auto;
+    color: #4caf50;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.rom-clear-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.rom-clear-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.hidden {
+    display: none !important;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     nav {

@@ -17,6 +17,8 @@
         </ul>
     </nav>
 
+    <div id="rom-picker-sound"></div>
+
     <div class="container">
         <h1>Sound Engine Documentation</h1>
         <p class="subtitle">Nintendo MusicPlayer2000 ("Sappy" / "m4a")</p>
@@ -280,5 +282,10 @@
     <footer>
         Klonoa: Empire of Dreams Decompilation Research Project
     </footer>
+    <script type="module">
+        import { initRomPicker } from './js/rom-picker.js';
+        // Sound page is mostly static docs — ROM picker is optional
+        initRomPicker('#rom-picker-sound', () => {});
+    </script>
 </body>
 </html>

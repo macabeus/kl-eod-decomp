@@ -17,6 +17,8 @@
         </ul>
     </nav>
 
+    <div id="rom-picker-home"></div>
+
     <div class="container">
         <h1>Klonoa: Empire of Dreams</h1>
         <p class="subtitle">Decompilation Research &amp; Documentation</p>
@@ -95,5 +97,10 @@
     <footer>
         Klonoa: Empire of Dreams Decompilation Research Project
     </footer>
+    <script type="module">
+        import { initRomPicker } from './js/rom-picker.js';
+        // On index page, ROM picker is optional — content is always visible
+        initRomPicker('#rom-picker-home', () => {});
+    </script>
 </body>
 </html>

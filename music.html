@@ -22,7 +22,7 @@
             background: var(--bg-secondary); border: 1px solid var(--border);
             border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; text-align: center;
         }
-        .player-wrapper h3 { margin-bottom: 0.8rem; color: var(--text-heading); }
+        .player-wrapper h3 { margin-bottom: 0.8rem; color: var(--text-heading); margin-top: 0; }
         midi-player { display: block; margin: 0.5rem auto; width: 100%; }
         .section-divider {
             border-top: 2px solid var(--accent); margin: 1.5rem 0 1rem; padding-top: 0.8rem;
@@ -37,20 +37,21 @@
 </head>
 <body>
     <nav>
-        <div class="nav-content">
-            <a href="index.html" class="nav-title">Klonoa: Empire of Dreams</a>
-            <div class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="sound.html">Sound Engine</a>
-                <a href="music.html" class="active">Music Player</a>
-            </div>
-        </div>
+        <a href="index.html" class="site-title">Klonoa: EoD Decomp</a>
+        <ul class="nav-links">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="sound.html">Sound Engine</a></li>
+            <li><a href="music.html" class="active">Music Player</a></li>
+            <li><a href="gallery.html">Graphics</a></li>
+        </ul>
     </nav>
 
-    <main>
+    <div id="rom-picker"></div>
+
+    <div class="container" id="content">
         <h1>Music Player</h1>
-        <p>All 35 background music tracks extracted from the ROM as Standard MIDI,
-           played back using <a href="https://cifkao.github.io/html-midi-player/">html-midi-player</a>
+        <p>All 35 background music tracks converted from the ROM's m4a bytecode to Standard MIDI
+           on-the-fly, played back using <a href="https://cifkao.github.io/html-midi-player/">html-midi-player</a>
            with a General MIDI soundfont.</p>
         <div class="note">
             Note: Playback uses General MIDI instruments, not the original GBA samples.
@@ -64,70 +65,12 @@
 
         <div class="section-divider">Background Music (35 tracks)</div>
         <ul class="song-list" id="song-list"></ul>
-    </main>
+    </div>
 
-    <script>
-        const songs = [
-            { id: 0, name: "Title Screen / Intro", tracks: 7 },
-            { id: 1, name: "Menu / File Select", tracks: 4 },
-            { id: 2, name: "Story Cutscene", tracks: 3 },
-            { id: 3, name: "World Map", tracks: 4 },
-            { id: 4, name: "Vision 1 \u2014 Breeze", tracks: 6 },
-            { id: 5, name: "Vision 2 \u2014 Jungle", tracks: 6 },
-            { id: 6, name: "Vision 3 \u2014 Cave", tracks: 6 },
-            { id: 7, name: "Vision 4 \u2014 Temple", tracks: 7 },
-            { id: 8, name: "Vision 5 \u2014 Ruins", tracks: 6 },
-            { id: 9, name: "Vision 6 \u2014 Sky", tracks: 7 },
-            { id: 10, name: "Vision 7 \u2014 Snow", tracks: 6 },
-            { id: 11, name: "Vision 8 \u2014 Night", tracks: 7 },
-            { id: 12, name: "Boss Intro", tracks: 7 },
-            { id: 13, name: "Boss Battle", tracks: 4 },
-            { id: 14, name: "Boss Clear / Victory", tracks: 5 },
-            { id: 15, name: "Cutscene \u2014 Emotional", tracks: 3 },
-            { id: 16, name: "Mini-game", tracks: 6 },
-            { id: 17, name: "Shop / Item", tracks: 4 },
-            { id: 18, name: "Puzzle Room", tracks: 6 },
-            { id: 19, name: "Secret Area", tracks: 5 },
-            { id: 20, name: "Final World", tracks: 7 },
-            { id: 21, name: "Final Boss Phase 1", tracks: 6 },
-            { id: 22, name: "Final Boss Phase 2", tracks: 6 },
-            { id: 23, name: "Ending Theme", tracks: 5 },
-            { id: 24, name: "Credits", tracks: 6 },
-            { id: 25, name: "Game Over", tracks: 5 },
-            { id: 26, name: "BGM 26", tracks: 6 },
-            { id: 27, name: "BGM 27", tracks: 6 },
-            { id: 28, name: "BGM 28", tracks: 6 },
-            { id: 29, name: "BGM 29", tracks: 5 },
-            { id: 30, name: "BGM 30", tracks: 6 },
-            { id: 31, name: "Jingle \u2014 Short", tracks: 3 },
-            { id: 32, name: "BGM 32", tracks: 7 },
-            { id: 33, name: "Jingle \u2014 Fanfare", tracks: 3 },
-            { id: 34, name: "BGM 34", tracks: 8 },
-        ];
+    <footer>
+        Klonoa: Empire of Dreams Decompilation Research Project
+    </footer>
 
-        const player = document.getElementById('player');
-        const nowPlaying = document.getElementById('now-playing');
-        const songListEl = document.getElementById('song-list');
-        let currentLi = null;
-
-        songs.forEach(song => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span class="song-id">#${String(song.id).padStart(2, '0')}</span>
-                <span class="song-name">${song.name}</span>
-                <span class="song-tracks">${song.tracks}ch</span>
-            `;
-            li.addEventListener('click', () => {
-                const src = `music/song${String(song.id).padStart(4, '0')}.mid`;
-                player.src = src;
-                player.start();
-                nowPlaying.textContent = `\u25B6 #${String(song.id).padStart(2, '0')} \u2014 ${song.name}`;
-                if (currentLi) currentLi.classList.remove('active');
-                li.classList.add('active');
-                currentLi = li;
-            });
-            songListEl.appendChild(li);
-        });
-    </script>
+    <script type="module" src="js/music-app.js"></script>
 </body>
 </html>
