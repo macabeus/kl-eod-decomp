@@ -177,7 +177,18 @@ INCLUDE_ASM("asm/nonmatchings/code_3", SaveGameWithVerify);
 INCLUDE_ASM("asm/nonmatchings/code_3", LoadGameFromSRAM);
 INCLUDE_ASM("asm/nonmatchings/code_3", SaveGameRetryLoop);
 INCLUDE_ASM("asm/nonmatchings/code_3", SavePlayerProgress);
-INCLUDE_ASM("asm/nonmatchings/code_3", IsSelectButtonPressed);
+/**
+ * IsSelectButtonPressed: returns 1 if Select (bit 6) is held, 0 otherwise.
+ */
+u32 IsSelectButtonPressed(void)
+{
+    u32 addr = 0x030051E4;
+    u16 *keys;
+    asm("" : "=r"(keys) : "0"(addr));
+    if (*keys & 0x40)
+        return 1;
+    return 0;
+}
 INCLUDE_ASM("asm/nonmatchings/code_3", ConfigureInterruptsForGameplay);
 INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerEntity);
 INCLUDE_ASM("asm/nonmatchings/code_3", MainGameFrameLoop);

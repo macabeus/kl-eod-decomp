@@ -511,7 +511,34 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayLoadSongData);
  * channel's hardware registers for the current frame.
  *   35 lines, calls SoundContextRef (SoundContextRef)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayStop);
+/**
+ * MPlayStop: stops all tracks in a music player.
+ * Checks Sappy magic, locks engine, sets stop flag, iterates
+ * all tracks calling SoundContextRef, then restores magic.
+ */
+void MPlayStop(u32 *player)
+{
+    u32 magic = player[0x34 / 4];
+
+    if (magic != 0x68736D53)
+        return;
+
+    player[0x34 / 4] = magic + 1;
+    player[0x04 / 4] |= 0x80000000;
+
+    {
+        s32 numTracks = (s32)(u8)((u8 *)player)[0x08];
+        u8 *track = (u8 *)player[0x2C / 4];
+
+        while (numTracks > 0) {
+            SoundContextRef((u32)player, (u32)track);
+            numTracks--;
+            track += 0x50;
+        }
+    }
+
+    player[0x34 / 4] = 0x68736D53;
+}
 
 /* ── Volume, Pitch & CGB Sound Control ── */
 
