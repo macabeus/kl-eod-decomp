@@ -46,20 +46,29 @@ echo ""
 echo "Initializing submodules..."
 git submodule update --init
 
-# Build agbcc
+# Build agbcc (skip if cached and up-to-date)
 echo ""
-echo "Building agbcc..."
-cd tools/agbcc
-# build.sh may return non-zero if the agbcc_arm variant fails to compile
-# on newer compilers, but the main agbcc binary will still be built.
-./build.sh || true
-./install.sh ../..
-cd ../..
+AGBCC_CACHE_FILE="tools/agbcc/.build_cache"
+AGBCC_COMMIT=$(git -C tools/agbcc rev-parse HEAD 2>/dev/null || echo "unknown")
 
-# Verify agbcc was built
-if [ ! -f tools/agbcc/bin/agbcc ]; then
-    echo "Error: agbcc failed to build."
-    exit 1
+if [ -f tools/agbcc/bin/agbcc ] && [ -f "$AGBCC_CACHE_FILE" ] && [ "$(cat "$AGBCC_CACHE_FILE")" = "$AGBCC_COMMIT" ]; then
+    echo "agbcc is up-to-date (cached), skipping build."
+else
+    echo "Building agbcc..."
+    cd tools/agbcc
+    # build.sh may return non-zero if the agbcc_arm variant fails to compile
+    # on newer compilers, but the main agbcc binary will still be built.
+    ./build.sh || true
+    ./install.sh ../..
+    cd ../..
+
+    # Verify agbcc was built
+    if [ ! -f tools/agbcc/bin/agbcc ]; then
+        echo "Error: agbcc failed to build."
+        exit 1
+    fi
+
+    echo "$AGBCC_COMMIT" > "$AGBCC_CACHE_FILE"
 fi
 
 # Set up Python venv for Luvdis
