@@ -6,7 +6,7 @@
 INCLUDE_ASM("asm/nonmatchings/gfx", InitGfxState);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGScrollRegisters);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGTileAnimation);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_08048768);
+INCLUDE_ASM("asm/nonmatchings/gfx", FadeOutController);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_080487b4);
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupSceneGfx);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_080491c0);
@@ -147,8 +147,13 @@ void FreeBuffer_52A4(void) {
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupWorldMapBG);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bd10);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bd8a);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bdb4);
+INCLUDE_ASM("asm/nonmatchings/gfx", ClearScreenBufferB_Alt);
+/**
+ * InitLevelStateDefaults: sets default dimensions, scroll, window regs.
+ * Initializes map dimensions (0xE80 x 0xA00), scroll (0x700 x 0xA00),
+ * REG_WININ=0x1F23, REG_WINOUT=0x003D, clears OBJ window in DISPCNT.
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", InitLevelStateDefaults);
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupGfxCallbacks);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804be58);
 /**
@@ -241,7 +246,7 @@ void ProcessStreamCommand_C218(void) {
     SetSpriteTableFromIndex(gStreamPtr[2]);
     gStreamPtr += 3;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c24c);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ConfigureSprite);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c300);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c3a4);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c484);
@@ -342,12 +347,16 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e3d6);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ClearRenderMode);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e448);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e568);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e5c6);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e5f0);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ToggleLayerFlag);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBlendMode);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e634);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e6b6);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e708);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e73a);
+/**
+ * StreamCmd_SetWindowRegs: writes REG_WININ/WINOUT from stream bytes[2-5].
+ * Advances stream by 6.
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetWindowRegs);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_EnableScrollMode);
 /**
  * StreamCmd_StopMusic: stream command to halt all music playback.
  * Calls StopAllMusicPlayers, advances stream by 2.
@@ -465,6 +474,6 @@ void EnableVBlankAndHandlers(void) {
     StopSoundEffects();
     gStreamPtr += 2;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e974);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e9dc);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804ea94);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetMusicParams);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ConfigureBlend);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_RunScript);
