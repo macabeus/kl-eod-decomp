@@ -67,9 +67,9 @@ void DecompressAndDmaCopy(u32 src, u32 dest, u32 size)
 
     {
         vu32 *dma3 = (vu32 *)0x040000D4;
-        dma3[0] = buf + 4;
-        dma3[1] = dest;
-        dma3[2] = (size >> 1) | 0x80000000;
+        dma3[0] = buf + 4;       /* DMA3SAD: skip 4-byte sub-header */
+        dma3[1] = dest;           /* DMA3DAD */
+        dma3[2] = (size >> 1) | 0x80000000; /* DMA3CNT: 16-bit, enable */
         (void)dma3[2];
 
         while (dma3[2] & 0x80000000)
