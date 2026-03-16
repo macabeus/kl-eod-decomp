@@ -210,13 +210,15 @@
         </div>
 
         <div class="section-header">
-            <h2>Background / Level Graphics</h2>
-            <span class="count">12 compressed assets (Huffman + LZ77)</span>
+            <h2>World Map &amp; EX Level Tiles</h2>
+            <span class="count">11 compressed assets (Huffman + LZ77)</span>
         </div>
         <p>
-            Large tile sheets used for level backgrounds, world maps, and UI screens.
-            Each asset is compressed using a two-stage pipeline: 4-bit Huffman encoding
-            followed by LZ77. Click any image to view at full resolution.
+            Tile sheets used for two contexts: the <strong>World Map</strong> select
+            screens (one per world: Bell Hill, Jugpot, Forlock, Volk, Ishras Viel)
+            and <strong>EX bonus level</strong> backgrounds (6 post-game stages).
+            Main level graphics use separate BG tile/tilemap tables with 162 entries.
+            Click any image to view at full resolution.
         </p>
 
         <div class="gallery-grid">
@@ -225,7 +227,7 @@
                     <img src="gallery/backgrounds/gfx_00.png" alt="GFX Asset 0" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_00 — Landscape / Platforms</h3>
+                    <h3>World Map 1 — Bell Hill</h3>
                     <div class="meta">
                         <span>0x32DF0C</span>
                         <span>9,732 B</span>
@@ -238,7 +240,7 @@
                     <img src="gallery/backgrounds/gfx_01.png" alt="GFX Asset 1" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_01 — Forest / Plants</h3>
+                    <h3>World Map 2 — Jugpot</h3>
                     <div class="meta">
                         <span>0x32ECF0</span>
                         <span>6,148 B</span>
@@ -251,7 +253,7 @@
                     <img src="gallery/backgrounds/gfx_02.png" alt="GFX Asset 2" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_02 — Ice / Water</h3>
+                    <h3>World Map 3 — Forlock</h3>
                     <div class="meta">
                         <span>0x32F6E8</span>
                         <span>6,148 B</span>
@@ -264,7 +266,7 @@
                     <img src="gallery/backgrounds/gfx_03.png" alt="GFX Asset 3" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_03 — Buildings / Architecture</h3>
+                    <h3>World Map 4 — Volk</h3>
                     <div class="meta">
                         <span>0x33018C</span>
                         <span>10,244 B</span>
@@ -277,7 +279,7 @@
                     <img src="gallery/backgrounds/gfx_04.png" alt="GFX Asset 4" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_04 — Temple / Palace</h3>
+                    <h3>World Map 5 — Ishras Viel</h3>
                     <div class="meta">
                         <span>0x330FC4</span>
                         <span>18,436 B</span>
@@ -290,7 +292,7 @@
                     <img src="gallery/backgrounds/gfx_06.png" alt="GFX Asset 6" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_06 — Forest World Tiles</h3>
+                    <h3>EX Vision 1</h3>
                     <div class="meta">
                         <span>0x331E48</span>
                         <span>114,692 B</span>
@@ -303,7 +305,7 @@
                     <img src="gallery/backgrounds/gfx_07.png" alt="GFX Asset 7" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_07 — Cave / Ruins Tiles</h3>
+                    <h3>EX Vision 2</h3>
                     <div class="meta">
                         <span>0x33A734</span>
                         <span>94,212 B</span>
@@ -316,7 +318,7 @@
                     <img src="gallery/backgrounds/gfx_08.png" alt="GFX Asset 8" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_08 — Snow / Ice World</h3>
+                    <h3>EX Vision 3</h3>
                     <div class="meta">
                         <span>0x341DF8</span>
                         <span>41,124 B</span>
@@ -329,7 +331,7 @@
                     <img src="gallery/backgrounds/gfx_09.png" alt="GFX Asset 9" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_09 — Fire / Volcano Tiles</h3>
+                    <h3>EX Vision 4</h3>
                     <div class="meta">
                         <span>0x3452A4</span>
                         <span>82,948 B</span>
@@ -342,7 +344,7 @@
                     <img src="gallery/backgrounds/gfx_10.png" alt="GFX Asset 10" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_10 — Sky / Cloud Tiles</h3>
+                    <h3>EX Vision 5</h3>
                     <div class="meta">
                         <span>0x34D190</span>
                         <span>73,732 B</span>
@@ -355,7 +357,7 @@
                     <img src="gallery/backgrounds/gfx_11.png" alt="GFX Asset 11" loading="lazy">
                 </div>
                 <div class="info">
-                    <h3>gfx_11 — Final World Tiles</h3>
+                    <h3>EX Vision 6</h3>
                     <div class="meta">
                         <span>0x354B2C</span>
                         <span>149,508 B</span>
@@ -366,12 +368,14 @@
         </div>
 
         <div class="section-header">
-            <h2>Palettes</h2>
-            <span class="count">9 color palettes (GBA RGB555)</span>
+            <h2>Sprite Palettes</h2>
+            <span class="count">9 OBJ color palettes (GBA RGB555)</span>
         </div>
         <p>
-            Color palettes stored as arrays of 16-bit GBA RGB555 values. The game
-            loads these into PAL_RAM at runtime to colorize the tile graphics above.
+            Sprite (OBJ) palettes stored as arrays of 16-bit GBA RGB555 values.
+            These are loaded into OBJ palette RAM for character sprites and effects.
+            BG palettes are loaded separately from a 54-entry table at
+            <code>0x08188F5C</code>.
         </p>
 
         <div class="palette-grid">
@@ -452,7 +456,25 @@
                     <td><code>ROM_GFX_ASSET_TABLE</code></td>
                     <td><code>0x0818B7AC</code></td>
                     <td>59</td>
-                    <td>Background/level graphics (12 compressed + 9 palettes + 38 raw tile banks)</td>
+                    <td>World map + EX level tiles (12), sprite palettes (9), sprite tile buffers (38)</td>
+                </tr>
+                <tr>
+                    <td><code>ROM_BG_TILE_TABLE</code></td>
+                    <td><code>0x08189034</code></td>
+                    <td>162</td>
+                    <td>BG tile data pointers (6 visions &times; 9 worldIDs &times; 3 layers)</td>
+                </tr>
+                <tr>
+                    <td><code>ROM_BG_TILEMAP_TABLE</code></td>
+                    <td><code>0x081892BC</code></td>
+                    <td>162</td>
+                    <td>BG tilemap pointers (parallel to tile table)</td>
+                </tr>
+                <tr>
+                    <td><code>ROM_BG_PALETTE_TABLE</code></td>
+                    <td><code>0x08188F5C</code></td>
+                    <td>54</td>
+                    <td>BG palettes: 512-byte RGB555 blocks, indexed as (visionID-1)*9 + worldID</td>
                 </tr>
                 <tr>
                     <td><code>ROM_TILESET_TABLE</code></td>
