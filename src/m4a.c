@@ -301,7 +301,11 @@ INCLUDE_ASM("asm/nonmatchings/m4a", FUN_080500c8);
  *   23 lines, refs: ROM_MUSIC_TABLE (0x08118AB4)
  *   calls: MPlayChannelUpdate (FUN_080507e0)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", FUN_080500fc);
+/**
+ * StopAllMusicPlayers: stops all 4 music player instances.
+ * Iterates ROM_MUSIC_TABLE (0x08118AB4), calling FUN_080507e0 on each.
+ */
+INCLUDE_ASM("asm/nonmatchings/m4a", StopAllMusicPlayers);
 /*
  * Wrapper that calls MPlayChannelReset (FUN_0804ff08) to stop/reset
  * a single sound channel.

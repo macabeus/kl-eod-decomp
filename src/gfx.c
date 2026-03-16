@@ -149,7 +149,7 @@ INCLUDE_ASM("asm/nonmatchings/gfx", SetupWorldMapBG);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bd10);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bd8a);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bdb4);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804be08);
+INCLUDE_ASM("asm/nonmatchings/gfx", SetupGfxCallbacks);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804be58);
 /**
  * ShutdownGfxSubsystem: tears down the graphics subsystem on scene exit.
@@ -174,25 +174,45 @@ void ShutdownGfxSubsystem(void)
     FreeBuffer_52A4();
     FreeGfxBuffer();
     FreeDecompStreamBuffer();
-    FUN_080500fc();
+    StopAllMusicPlayers();
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bfd0);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c050);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c0be);
+/**
+ * InitGfxStreamState: allocates stream buffer, clears OAM, resets cursors.
+ * Alloc 0x100 bytes for gGfxStreamBuffer, DMA-zero, clear OAM shadow,
+ * DMA OAM to hardware, set object count to 13, init write cursors.
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", InitGfxStreamState);
+/**
+ * ResetGfxStreamEntries: frees all active stream entries and resets state.
+ * Iterates 32 entries in gGfxStreamBuffer, frees those with non-zero flags,
+ * clears OAM, resets write cursors.
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", ResetGfxStreamEntries);
+/**
+ * StreamCmd_ResetEntries: stream command handler that resets all entries.
+ *
+ * Calls ResetGfxStreamEntries to free all active stream entries,
+ * then advances the data stream pointer by 2.
+ */
+void StreamCmd_ResetEntries(void)
+{
+    ResetGfxStreamEntries();
+    gStreamPtr += 2;
+}
 /*
- * Shuts down the graphics stream: calls FUN_0804c050 to finalize,
+ * Shuts down the graphics stream: calls ResetGfxStreamEntries to finalize,
  * then frees the buffer at 0x030007C8 via thunk_FUN_0800020c.
  *   no parameters
  *   no return value
  */
 void ShutdownGfxStream(void) {
-    FUN_0804c050();
+    ResetGfxStreamEntries();
     thunk_FUN_0800020c(gGfxStreamBuffer);
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c0ec); /* ProcessStreamOpcode */
+INCLUDE_ASM("asm/nonmatchings/gfx", LoadGfxStreamEntry); /* ProcessStreamOpcode */
 /*
  * Reads a command byte from the data stream, splits it into a 7-bit value
- * and a 1-bit flag, then dispatches to FUN_0804c0ec. Advances stream by 3.
+ * and a 1-bit flag, then dispatches to LoadGfxStreamEntry. Advances stream by 3.
  *   no parameters (reads from global data stream pointer at 0x03004D84)
  *   no return value
  */
@@ -203,7 +223,7 @@ void DispatchStreamCommand_C0EC(void) {
     u8 val = byte & 0x7F;
     u8 flag = byte >> 7;
     *gp = ptr + 3;
-    FUN_0804c0ec(val, flag);
+    LoadGfxStreamEntry(val, flag);
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", sub_0804C1C0);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c1fc);
