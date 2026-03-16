@@ -2,76 +2,76 @@
 #include "globals.h"
 #include "include_asm.h"
 
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080301a8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08030680);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080313f8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08031adc);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08031e7e);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080326e8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08032d3e);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080335d4);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08033aac);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803407a);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080348b0);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08035210);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08035ef8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08037038);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080375a0);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08037dbc);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803881c);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080392a4);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08039920);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World1_Vision1);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World1_Vision2);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World2_Vision1);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World2_Vision2);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World3_Vision1);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World3_Vision2);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World4_Vision1);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World4_Vision2);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World5_Vision1);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World5_Vision2);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World6_Vision1);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World6_Vision2);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World7_Vision1);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World7_Vision2);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World8_Vision1);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World8_Vision2);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World9_Vision1);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_World9_Vision2);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadLevel_BossArena);
 INCLUDE_ASM("asm/nonmatchings/code_3", InitGameplayState);
 INCLUDE_ASM("asm/nonmatchings/code_3", UpdateOamSortOrder);
 INCLUDE_ASM("asm/nonmatchings/code_3", ProcessInputAndUpdateEntities);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803aaa0);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ac18); /* IsEntityActive */
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ad94); /* UpdateEntityState */
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ae88);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803af38); /* UpdateEntityAnimation */
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateWorldMapInput);
+INCLUDE_ASM("asm/nonmatchings/code_3", CheckWorldCompletion); /* IsEntityActive */
+INCLUDE_ASM("asm/nonmatchings/code_3", CopyWorldMapTiles); /* UpdateEntityState */
+INCLUDE_ASM("asm/nonmatchings/code_3", SetWorldMapTilePalette);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateWorldMapNodeTile); /* UpdateEntityAnimation */
 /*
  * Iterates over entity slots 0-6 and updates active ones.
- * For each slot, checks if the entity is active via FUN_0803ac18.
- * If active, calls FUN_0803ad94 and FUN_0803af38 to update it.
+ * For each slot, checks if the entity is active via CheckWorldCompletion.
+ * If active, calls CopyWorldMapTiles and UpdateWorldMapNodeTile to update it.
  *   no parameters
  *   no return value
  */
 void UpdateEntities(void) {
     u8 i;
     for (i = 0; i <= 6; i++) {
-        if ((u8)FUN_0803ac18(i)) {
-            FUN_0803ad94(i);
-            FUN_0803af38(i);
+        if ((u8)CheckWorldCompletion(i)) {
+            CopyWorldMapTiles(i);
+            UpdateWorldMapNodeTile(i);
         }
     }
 }
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b0a0);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b378);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803b3d2);
+INCLUDE_ASM("asm/nonmatchings/code_3", CountCollectedGems);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateWorldMapNodeAnim);
+INCLUDE_ASM("asm/nonmatchings/code_3", RunWorldMapTransition);
 INCLUDE_ASM("asm/nonmatchings/code_3", UpdateAllEntities);
 INCLUDE_ASM("asm/nonmatchings/code_3", GameplayMainLoop);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803c808);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803ce16);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803cf08);
+INCLUDE_ASM("asm/nonmatchings/code_3", InitLevelState);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateEntitySpawnState);
+INCLUDE_ASM("asm/nonmatchings/code_3", SpawnEntitiesForVision);
 INCLUDE_ASM("asm/nonmatchings/code_3", GetEntityLookupData);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803d15c);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803d4ac);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803d90c);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803e6d8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803e8cc);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803e904);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803f68c);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803f952);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0803f9ee);
-INCLUDE_ASM("asm/nonmatchings/code_3", sub_08040B50);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08040d68);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08040f1e);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08041df0);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08041e96);
-INCLUDE_ASM("asm/nonmatchings/code_3", sub_08041F34);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08042024);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08042bee);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08042e66);
+INCLUDE_ASM("asm/nonmatchings/code_3", ComputeScrollLimits);
+INCLUDE_ASM("asm/nonmatchings/code_3", ApplyPlayerMovement);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerNormal);
+INCLUDE_ASM("asm/nonmatchings/code_3", SetupEntitySpawnTable);
+INCLUDE_ASM("asm/nonmatchings/code_3", RollRandomLevelVariant);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerBoss);
+INCLUDE_ASM("asm/nonmatchings/code_3", ConfigureEntityBehavior);
+INCLUDE_ASM("asm/nonmatchings/code_3", ResetEntityTypesOnDeath);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerMinigame);
+INCLUDE_ASM("asm/nonmatchings/code_3", TransitionLevelVariant);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateLevelProgression);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerAlternate);
+INCLUDE_ASM("asm/nonmatchings/code_3", HandleSceneTransitionInput);
+INCLUDE_ASM("asm/nonmatchings/code_3", DecompressRowToTilemap);
+INCLUDE_ASM("asm/nonmatchings/code_3", SetEntityVisibility);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerSpecial);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateLevelScrollDMA);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerFinalBoss);
 /**
  * DecompressData: process a compressed asset's sub-header and decompress.
  *
@@ -144,9 +144,9 @@ INCLUDE_ASM("asm/nonmatchings/code_3", RunSceneScript);
 INCLUDE_ASM("asm/nonmatchings/code_3", RunTitleSequence);
 INCLUDE_ASM("asm/nonmatchings/code_3", UpdateStageSelectScreen);
 INCLUDE_ASM("asm/nonmatchings/code_3", DecompressAndLoadLevel); /* DecompressLZ77 */
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0804517c);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080452ea);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0804539a);
+INCLUDE_ASM("asm/nonmatchings/code_3", CheckTileCollisionRect);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateScrollPosition);
+INCLUDE_ASM("asm/nonmatchings/code_3", InitPauseMenu);
 INCLUDE_ASM("asm/nonmatchings/code_3", InitGameplayFromWorldMap);
 /*
  * Runs the per-frame game update. If the pause flag at 0x030034E4 is zero,
@@ -157,30 +157,30 @@ INCLUDE_ASM("asm/nonmatchings/code_3", InitGameplayFromWorldMap);
  */
 void GameUpdate(void) {
     if (gPauseFlag == 0) {
-        FUN_080468b0();
-        FUN_08045874();
-        FUN_08045f68();
-        FUN_08046288();
+        UpdateWorldMapNodeState();
+        UpdatePlayerInput();
+        InitPlayerCollision();
+        UpdateWorldMapCursor();
     }
     FUN_08025ba4();
 }
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0804575c);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08045874); /* UpdatePhysics */
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08045f68); /* UpdateCollision */
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08046288); /* UpdateCamera */
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080467f4);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080468b0); /* UpdateGameLogic */
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080469fc);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08046a64);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08046b6c);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08046db8);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08046f6c);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0804713e);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080471f4);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_080472b0);
+INCLUDE_ASM("asm/nonmatchings/code_3", SpawnLevelEntities);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerInput); /* UpdatePhysics */
+INCLUDE_ASM("asm/nonmatchings/code_3", InitPlayerCollision); /* UpdateCollision */
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateWorldMapCursor); /* UpdateCamera */
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateVisionStarIcons);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateWorldMapNodeState); /* UpdateGameLogic */
+INCLUDE_ASM("asm/nonmatchings/code_3", FindNextUnlockedVision);
+INCLUDE_ASM("asm/nonmatchings/code_3", SortEntityDrawOrder);
+INCLUDE_ASM("asm/nonmatchings/code_3", SaveGameToSRAM);
+INCLUDE_ASM("asm/nonmatchings/code_3", SaveGameWithVerify);
+INCLUDE_ASM("asm/nonmatchings/code_3", LoadGameFromSRAM);
+INCLUDE_ASM("asm/nonmatchings/code_3", SaveGameRetryLoop);
+INCLUDE_ASM("asm/nonmatchings/code_3", SavePlayerProgress);
+INCLUDE_ASM("asm/nonmatchings/code_3", IsSelectButtonPressed);
 INCLUDE_ASM("asm/nonmatchings/code_3", ConfigureInterruptsForGameplay);
 INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerEntity);
 INCLUDE_ASM("asm/nonmatchings/code_3", MainGameFrameLoop);
 INCLUDE_ASM("asm/nonmatchings/code_3", InitFadeTransition);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_08047eca);
-INCLUDE_ASM("asm/nonmatchings/code_3", FUN_0804802a);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateScreenWipe);
+INCLUDE_ASM("asm/nonmatchings/code_3", UpdateWorldMapLogic);
