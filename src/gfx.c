@@ -99,7 +99,13 @@ INCLUDE_ASM("asm/nonmatchings/gfx", SetupLevelLayerConfig);
  *
  *   idx: level palette index (u8, shifted to u32 table offset)
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", FinalizeLevelLayerSetup);
+void FinalizeLevelLayerSetup(u8 idx)
+{
+    u32 *table;
+    u32 addr = 0x08189B4C;
+    asm("" : "=r"(table) : "0"(addr));
+    DecompressAndCopyToPalette((u32 *)table[idx], 0x05000000, 0x1C0);
+}
 /**
  * LoadAndDecompressStream: decompress a data stream from a ROM table entry.
  *
@@ -111,7 +117,16 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FinalizeLevelLayerSetup);
  * LoadAndDecompressStream: decompress a data stream from ROM table entry.
  * Sets gDecompBuffer and gStreamPtr from ROM_STREAM_TABLE[idx].
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", LoadAndDecompressStream);
+void LoadAndDecompressStream(u32 idx)
+{
+    u32 *table;
+    u32 addr = 0x08189AFC;
+    u32 buf;
+    asm("" : "=r"(table) : "0"(addr));
+    buf = AllocAndDecompress((u32 *)table[idx]);
+    gDecompBuffer = buf;
+    gStreamPtr = (u8 *)(buf + 4);
+}
 
 /**
  * FreeDecompStreamBuffer: frees the decompressed stream buffer.
