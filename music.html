@@ -166,11 +166,23 @@
                 loadBar.style.width = '50%';
 
                 statusEl.textContent = 'Loading audio worklet...';
-                await ctx.audioWorklet.addModule(PROCESSOR_URL);
+                try {
+                    await ctx.audioWorklet.addModule(PROCESSOR_URL);
+                } catch (workletErr) {
+                    console.error('addModule failed:', workletErr);
+                    statusEl.textContent = `Worklet error: ${workletErr.message}`;
+                    throw workletErr;
+                }
                 loadBar.style.width = '70%';
 
                 statusEl.textContent = 'Initializing synthesizer...';
-                synth = new WorkletSynthesizer(ctx.destination, soundfontBuffer);
+                synth = new WorkletSynthesizer(ctx);
+                loadBar.style.width = '80%';
+
+                statusEl.textContent = 'Loading soundfont into synth...';
+                await synth.soundBankManager.addSoundBank(soundfontBuffer, "gba");
+                loadBar.style.width = '90%';
+
                 await synth.isReady;
                 loadBar.style.width = '100%';
 
@@ -187,18 +199,16 @@
             try {
                 await initSynth();
 
-                if (seq) {
-                    seq.stop();
-                }
-
                 const filename = `music/song${String(id).padStart(4, '0')}.mid`;
                 statusEl.textContent = `Loading ${filename}...`;
 
                 const midiResponse = await fetch(filename);
                 const midiBuffer = await midiResponse.arrayBuffer();
 
-                seq = new Sequencer([{ binary: midiBuffer }], synth);
-                seq.loop = true;
+                if (!seq) {
+                    seq = new Sequencer(synth);
+                }
+                seq.loadNewSongList([{ binary: midiBuffer }]);
                 seq.play();
 
                 if (currentSong >= 0) {
@@ -218,8 +228,7 @@
         }
 
         window.stopPlayback = function() {
-            if (seq) { seq.stop(); seq = null; }
-            if (synth) { synth.resetAllControllers(); }
+            if (seq) { seq.pause(); }
             if (currentSong >= 0) {
                 document.getElementById(`song-${currentSong}`)?.classList.remove('playing');
             }
