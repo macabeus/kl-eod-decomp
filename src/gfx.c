@@ -78,17 +78,57 @@ void DecompressAndDmaCopy(u32 src, u32 dest, u32 size)
 
     thunk_FUN_0800020c(buf);
 }
+/**
+ * LoadBGTileData: load per-level tile data for one BG layer.
+ *
+ * Looks up the ROM tile pointer and VRAM destination from configuration
+ * tables, then calls DecompressAndDmaCopy to decompress and DMA the
+ * tile character data into the layer's assigned charblock.
+ *
+ *   levelIdx: level index (0-based)
+ *   sublevel: sublevel / layer pair index
+ */
 INCLUDE_ASM("asm/nonmatchings/gfx", LoadBGTileData);
 INCLUDE_ASM("asm/nonmatchings/gfx", LoadBGTilemapData);
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupLevelLayerConfig);
 INCLUDE_ASM("asm/nonmatchings/gfx", FinalizeLevelLayerSetup);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bad4);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bafc);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bb12);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bb3c);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bb74);
+/**
+ * LoadAndDecompressStream: decompress a data stream from a ROM table entry.
+ *
+ * Looks up a compressed data pointer from ROM_STREAM_TABLE (0x08189AFC)
+ * by index, allocates and decompresses it, stores the raw buffer in
+ * gDecompBuffer and sets gStreamPtr to buffer+4 (past the header).
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", LoadAndDecompressStream);
+
+/**
+ * FreeDecompStreamBuffer: frees the decompressed stream buffer.
+ */
+void FreeDecompStreamBuffer(void)
+{
+    thunk_FUN_0800020c(gDecompBuffer);
+}
+
+INCLUDE_ASM("asm/nonmatchings/gfx", ClearScreenBufferB);
+
+/**
+ * AllocAndClearGfxBuffer: allocates and zero-fills a 0x20-byte GFX buffer.
+ * Stores pointer in gGfxBufferPtr, DMA3-fills with zeros.
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", AllocAndClearGfxBuffer);
+
+/**
+ * FreeGfxBuffer: frees the GFX buffer struct at gGfxBufferPtr.
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", FreeGfxBuffer);
+
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bb86);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bb88);
+
+/**
+ * AllocAndClearBuffer_52A4: allocates and zero-fills a 0x480-byte buffer.
+ * Stores pointer in gBuffer_52A4, DMA3-fills with zeros.
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", AllocAndClearBuffer_52A4);
 /*
  * Frees the memory buffer pointed to by the global at 0x030052A4.
  *   no parameters

@@ -26,5 +26,5 @@ INCLUDE_ASM("asm/nonmatchings/engine", FUN_0800350c);
 INCLUDE_ASM("asm/nonmatchings/engine", FUN_08003750);
 INCLUDE_ASM("asm/nonmatchings/engine", ResetVideoRegisters); /* RenderFrame — per-frame rendering dispatch */
 INCLUDE_ASM("asm/nonmatchings/engine", ClearVideoState);
-INCLUDE_ASM("asm/nonmatchings/engine", ClearOamBufferExtended); /* DrawSpriteTilesPartial */
+INCLUDE_ASM("asm/nonmatchings/engine", ClearOamBufferExtended);
 INCLUDE_ASM("asm/nonmatchings/engine", FUN_08003da0); /* DrawSpriteTilesFlipped */
