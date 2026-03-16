@@ -339,7 +339,7 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804df80);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e008);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e0e8);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e3d6);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e42a);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ClearRenderMode);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e448);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e568);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e5c6);
@@ -402,7 +402,17 @@ void StreamCmd_StopMusicAndDisableIRQ(void)
     DisableInterruptsForGfxSetup();
     gStreamPtr += 2;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e814);
+/**
+ * StreamCmd_DisableVBlank: disables VBlank interrupt and calls
+ * DisableInterruptsForGfxSetup. Advances stream by 2.
+ */
+void StreamCmd_DisableVBlank(void)
+{
+    *(vu16 *)0x04000200 &= 0xFFFE; /* REG_IE &= ~INT_VBLANK */
+    *(vu16 *)0x04000004 &= 0xFFF7; /* REG_DISPSTAT &= ~VBLANK_IRQ */
+    DisableInterruptsForGfxSetup();
+    gStreamPtr += 2;
+}
 /*
  * Enables VBlank interrupt and VBlank IRQ status, then calls
  * EnableInterruptsAfterGfxSetup to set up the handler. Advances the data stream by 2.
@@ -440,7 +450,7 @@ void EnableVBlankAndDispatchMusic(void) {
 
     *(u8 **)0x03004D84 += 3;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e8fe);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_DisableVBlankAndStopMusic);
 /*
  * Enables VBlank interrupt and VBlank IRQ status, then calls two
  * interrupt setup handlers (EnableInterruptsAfterGfxSetup, StopSoundEffects).
