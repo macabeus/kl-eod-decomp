@@ -29,17 +29,29 @@
 /* Buffer freed by FreeBuffer_52A4. */
 #define gBuffer_52A4       (*(u32 *)0x030052A4)
 
-/* ── Sound / Music ── */
+/* ── Sound / Music (m4a / MusicPlayer2000 / Sappy engine) ── */
 
-/* Sound context pointers used by PlaySoundWithContext functions. */
-#define gSoundCtx_D8       (*(u32 *)0x030064D8)
-#define gSoundCtx_DC       (*(u32 *)0x030064DC)
+/* Main sound info struct pointer. Contains channel state, mixer config,
+ * and pointers to the currently playing tracks. */
+#define gSoundInfo         (*(u32 *)0x0300081C)
+
+/* Music player context pointers. Each MusicPlayer instance has its own
+ * context for independent track playback. */
+#define gMPlayInfo_BGM     (*(u32 *)0x030064D8)
+#define gMPlayInfo_SE      (*(u32 *)0x030064DC)
 
 /* Sound command dispatch table pointer. */
 #define gSoundTablePtr     (*(u32 *)0x03006450)
 
-/* Sound struct pointer (for FreeSoundStruct). */
-#define gSoundStructPtr    (*(u32 *)0x0300081C)
+/* Sound command dispatch secondary table pointer. */
+#define gSoundCmdTablePtr  (*(u32 *)0x03006454)
+
+/* Sound engine state/event buffer. */
+#define gSoundEventBuffer  ((u8 *)0x030054A0)
+
+/* Sappy engine magic marker: "Smsh" (0x68736D53) in little-endian.
+ * Used to verify the sound engine is properly initialized. */
+#define SAPPY_MAGIC        0x68736D53
 
 /* ── Game State ── */
 
@@ -134,7 +146,34 @@
 #define ROM_GFX_ASSET_TABLE     0x0818B7AC
 #define ROM_TILESET_TABLE       0x0818B8E0
 
-/* Sound data tables. */
-#define ROM_SOUND_DATA_TABLE    0x08118AB4
+/* ── Sound ROM Data Tables ── */
+
+/* Music track table: array of {u32 count, u32 trackDataPtr} entries.
+ * Indexed by track ID in PlayMusicTrack. */
+#define ROM_MUSIC_TABLE         0x08118AB4
+
+/* Music track metadata table (offsets, lengths, loop points).
+ * Paired with ROM_MUSIC_TABLE. */
+#define ROM_MUSIC_META_TABLE    0x08118AE4
+
+/* Sound command dispatch table.
+ * Array of function pointers indexed by command byte. */
+#define ROM_SOUND_CMD_TABLE     0x08117C8C
+
+/* Instrument/voice table.
+ * Contains waveform, envelope, and pitch data for each instrument. */
+#define ROM_INSTRUMENT_TABLE    0x081179E4
+
+/* Pitch/frequency lookup tables for MIDI note-to-frequency conversion. */
+#define ROM_FREQ_TABLE_1        0x08117A74
+#define ROM_FREQ_TABLE_2        0x08117B28
+#define ROM_PITCH_TABLE         0x08117B70
+#define ROM_WAVE_DUTY_TABLE     0x08117BF4
+#define ROM_NOISE_TABLE         0x08117C0C
+#define ROM_ENVELOPE_TABLE      0x08117C48
+#define ROM_SWEEP_TABLE         0x08117C58
+
+/* Sound configuration init data. */
+#define ROM_SOUND_INIT_DATA     0x081177E4
 
 #endif /* GUARD_GLOBALS_H */
