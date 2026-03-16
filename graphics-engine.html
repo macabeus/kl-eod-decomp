@@ -547,6 +547,11 @@
                 <tr><td class="mono">AllocAndDecompress</td><td>Matched</td><td>Alloc buffer + decompress into it</td></tr>
                 <tr><td class="mono">FreeDecompStreamBuffer</td><td>Matched</td><td>Simple free wrapper</td></tr>
                 <tr><td class="mono">FreeBuffer_52A4</td><td>Matched</td><td>Simple free wrapper</td></tr>
+                <tr><td class="mono">FinalizeLevelLayerSetup</td><td>Matched</td><td>Palette table lookup (asm barrier technique)</td></tr>
+                <tr><td class="mono">LoadAndDecompressStream</td><td>Matched</td><td>Stream table lookup (asm barrier technique)</td></tr>
+                <tr><td class="mono">DisableInterruptsForGfxSetup</td><td>Matched</td><td>Sound shutdown (late variable init technique)</td></tr>
+                <tr><td class="mono">IsSelectButtonPressed</td><td>Matched</td><td>Input check (asm barrier technique)</td></tr>
+                <tr><td class="mono">MPlayStop</td><td>Matched</td><td>Music player stop (no special technique needed)</td></tr>
                 <tr><td class="mono">ShutdownGfxSubsystem</td><td>Matched</td><td>Tears down graphics on scene exit (free chain)</td></tr>
                 <tr><td class="mono">StreamCmd_ResetEntries</td><td>Matched</td><td>Stream command: reset all active entries</td></tr>
                 <tr><td class="mono">StreamCmd_EnableMosaic</td><td>Matched</td><td>Stream command: enable BG2/BG3 mosaic</td></tr>
