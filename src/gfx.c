@@ -107,6 +107,10 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FinalizeLevelLayerSetup);
  * by index, allocates and decompresses it, stores the raw buffer in
  * gDecompBuffer and sets gStreamPtr to buffer+4 (past the header).
  */
+/**
+ * LoadAndDecompressStream: decompress a data stream from ROM table entry.
+ * Sets gDecompBuffer and gStreamPtr from ROM_STREAM_TABLE[idx].
+ */
 INCLUDE_ASM("asm/nonmatchings/gfx", LoadAndDecompressStream);
 
 /**
