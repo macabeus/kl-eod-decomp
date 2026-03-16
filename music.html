@@ -156,7 +156,17 @@
                 statusEl.textContent = 'Downloading soundfont (688KB)...';
                 loadBar.style.width = '10%';
                 const sfResponse = await fetch('music/baserom.sf2');
-                soundfontBuffer = await sfResponse.arrayBuffer();
+                if (!sfResponse.ok) {
+                    throw new Error(`SF2 fetch failed: ${sfResponse.status} ${sfResponse.statusText}`);
+                }
+                const rawBuffer = await sfResponse.arrayBuffer();
+                // Verify RIFF header before passing to synth
+                const header = new Uint8Array(rawBuffer, 0, 4);
+                const headerStr = String.fromCharCode(...header);
+                if (headerStr !== 'RIFF') {
+                    throw new Error(`SF2 invalid: expected RIFF header, got "${headerStr}" (${rawBuffer.byteLength} bytes). File may be corrupted or served incorrectly.`);
+                }
+                soundfontBuffer = rawBuffer;
                 loadBar.style.width = '50%';
 
                 statusEl.textContent = 'Loading audio worklet...';
