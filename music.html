@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Player — Klonoa: Empire of Dreams</title>
     <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "spessasynth_core": "https://cdn.jsdelivr.net/npm/spessasynth_core@4.2.0/dist/index.js",
+            "spessasynth_lib": "https://cdn.jsdelivr.net/npm/spessasynth_lib@4.2.0/dist/index.js"
+        }
+    }
+    </script>
     <style>
         .player-container { max-width: 800px; margin: 2rem auto; }
         .song-list { list-style: none; padding: 0; }
@@ -74,7 +82,7 @@
     </main>
 
     <script type="module">
-        import { WorkletSynthesizer, Sequencer } from 'https://cdn.jsdelivr.net/npm/spessasynth_lib@4.2.0/dist/index.js';
+        import { WorkletSynthesizer, Sequencer } from 'spessasynth_lib';
 
         const PROCESSOR_URL = 'https://cdn.jsdelivr.net/npm/spessasynth_lib@4.2.0/dist/spessasynth_processor.min.js';
 
