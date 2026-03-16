@@ -341,6 +341,65 @@
             and the shared tiles (at higher tile IDs that weren't overwritten).
         </p>
 
+        <!-- ===== Graphics Stream System ===== -->
+        <h2>Graphics Stream System</h2>
+
+        <p>
+            Beyond the BG layer system, the game uses a <strong>graphics command stream</strong>
+            for scripted scene transitions, cutscenes, and dynamic effects. A byte stream
+            stored in ROM (accessed via <code>gStreamPtr</code> at <code>0x03004D84</code>)
+            encodes a sequence of commands that are dispatched each frame.
+        </p>
+
+        <h3>Stream Architecture</h3>
+        <p>
+            The stream processor reads command bytes and dispatches to handler functions.
+            Each command consumes 2&ndash;7 bytes from the stream (command byte + arguments).
+            Three dynamically allocated buffers support the stream:
+        </p>
+        <ul>
+            <li><strong>Decomp Stream Buffer</strong> (<code>gDecompBuffer</code>) &mdash;
+                holds the decompressed command stream data</li>
+            <li><strong>GFX State Buffer</strong> (<code>gGfxBufferPtr</code>, 32 bytes) &mdash;
+                per-scene palette/flag state</li>
+            <li><strong>Scratch Buffer</strong> (<code>gBuffer_52A4</code>, 0x480 bytes) &mdash;
+                temporary workspace for stream processing</li>
+        </ul>
+
+        <h3>Stream Lifecycle</h3>
+        <pre><code><span class="fn">LoadAndDecompressStream</span>(streamIdx)  <span class="cm">// decompress from ROM, set gStreamPtr</span>
+<span class="fn">AllocAndClearGfxBuffer</span>()             <span class="cm">// alloc 32-byte GFX state</span>
+<span class="fn">AllocAndClearBuffer_52A4</span>()          <span class="cm">// alloc 0x480-byte scratch</span>
+
+<span class="cm">// ... frame-by-frame command dispatch ...</span>
+
+<span class="fn">ShutdownGfxSubsystem</span>()              <span class="cm">// on scene exit:</span>
+  ├─ <span class="fn">ShutdownGfxStream</span>()             <span class="cm">// frees stream entries + stream buffer</span>
+  ├─ <span class="fn">FreeSoundStruct</span>()
+  ├─ <span class="fn">FreeBuffer_52A4</span>()
+  ├─ <span class="fn">FreeGfxBuffer</span>()
+  ├─ <span class="fn">FreeDecompStreamBuffer</span>()
+  └─ <span class="fn">StopAllMusicPlayers</span>()</code></pre>
+
+        <h3>Known Stream Commands</h3>
+        <table>
+            <thead>
+                <tr><th>Address</th><th>Name</th><th>Bytes</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="mono">0x0804C0BE</td><td>StreamCmd_ResetEntries</td><td>2</td><td>Frees all active stream entries, resets video state</td></tr>
+                <tr><td class="mono">0x0804C1FC</td><td>StreamCmd_DmaSpriteData</td><td>4</td><td>DMAs sprite tile data from stream buffer to OBJ VRAM</td></tr>
+                <tr><td class="mono">0x0804C6A8</td><td>StreamCmd_EnableMosaic</td><td>3</td><td>Sets mosaic on BG2/BG3, reads 4-bit mosaic level</td></tr>
+                <tr><td class="mono">0x0804C776</td><td>StreamCmd_SetRenderMode</td><td>2</td><td>Modifies render mode flags in level state struct</td></tr>
+                <tr><td class="mono">0x0804C798</td><td>DispatchLevelLayerSetup</td><td>var</td><td>Triggers full per-level BG layer setup pipeline</td></tr>
+                <tr><td class="mono">0x0804C7FC</td><td>StreamCmd_SetBGScroll</td><td>7</td><td>Sets layer scroll X/Y from stream (subpixel &laquo;4)</td></tr>
+                <tr><td class="mono">0x0804E76E</td><td>StreamCmd_StopMusic</td><td>2</td><td>Halts all music players</td></tr>
+                <tr><td class="mono">0x0804E7D2</td><td>StreamCmd_StopSound</td><td>2</td><td>Stops sound effects</td></tr>
+                <tr><td class="mono">0x0804E7E6</td><td>StreamCmd_Nop3</td><td>3</td><td>No-op (advances stream by 3 bytes)</td></tr>
+                <tr><td class="mono">0x0804E7FA</td><td>StreamCmd_StopMusicAndDisableIRQ</td><td>2</td><td>Stops music and disables VBlank/HBlank interrupts</td></tr>
+            </tbody>
+        </table>
+
         <!-- ===== Named Functions ===== -->
         <h2>Named Functions</h2>
 
@@ -442,6 +501,11 @@
                 <tr><td class="mono">AllocAndDecompress</td><td>Matched</td><td>Alloc buffer + decompress into it</td></tr>
                 <tr><td class="mono">FreeDecompStreamBuffer</td><td>Matched</td><td>Simple free wrapper</td></tr>
                 <tr><td class="mono">FreeBuffer_52A4</td><td>Matched</td><td>Simple free wrapper</td></tr>
+                <tr><td class="mono">ShutdownGfxSubsystem</td><td>Matched</td><td>Tears down graphics on scene exit (free chain)</td></tr>
+                <tr><td class="mono">StreamCmd_ResetEntries</td><td>Matched</td><td>Stream command: reset all active entries</td></tr>
+                <tr><td class="mono">StreamCmd_EnableMosaic</td><td>Matched</td><td>Stream command: enable BG2/BG3 mosaic</td></tr>
+                <tr><td class="mono">StreamCmd_StopMusic</td><td>Matched</td><td>Stream command: halt all music</td></tr>
+                <tr><td class="mono">StreamCmd_StopMusicAndDisableIRQ</td><td>Matched</td><td>Stream command: stop music + disable IRQ</td></tr>
             </tbody>
         </table>
 
