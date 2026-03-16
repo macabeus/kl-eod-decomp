@@ -324,7 +324,7 @@ void StopSoundChannel(u32 r0) {
  * each frame, ensuring audio stays in sync with display refresh.
  *   23 lines, calls MPlayChannelReset (FUN_0804ff08)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", FUN_08050134);
+INCLUDE_ASM("asm/nonmatchings/m4a", StopSoundEffects);
 /*
  * SappyStateCheck: verify the Sappy engine is properly initialized.
  * Checks for SAPPY_MAGIC (0x68736D53 = "Smsh" in little-endian)

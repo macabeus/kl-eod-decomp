@@ -225,16 +225,20 @@ void DispatchStreamCommand_C0EC(void) {
     *gp = ptr + 3;
     LoadGfxStreamEntry(val, flag);
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", sub_0804C1C0);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c1fc);
+INCLUDE_ASM("asm/nonmatchings/gfx", DmaSpriteToObjVram);
+/**
+ * StreamCmd_DmaSpriteData: reads sprite entry/frame from stream, DMAs to OBJ VRAM.
+ * Also contains SetSpriteTableFromIndex (0x0804C218) as an embedded sub-function.
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_DmaSpriteData);
 /*
- * Reads a command byte from the data stream and processes it via FUN_0804c218.
+ * Reads a command byte from the data stream and processes it via SetSpriteTableFromIndex.
  * Byte[2] is the command argument. Advances the stream pointer by 3.
  *   no parameters (reads from global data stream pointer at 0x03004D84)
  *   no return value
  */
 void ProcessStreamCommand_C218(void) {
-    FUN_0804c218(gStreamPtr[2]);
+    SetSpriteTableFromIndex(gStreamPtr[2]);
     gStreamPtr += 3;
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c24c);
@@ -243,11 +247,38 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c3a4);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c484);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c598);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c60c);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c6a8);
+/**
+ * StreamCmd_EnableMosaic: enables mosaic on BG2/BG3 and sets mosaic level.
+ *
+ * Sets bit 6 (mosaic) on REG_BG2CNT and REG_BG3CNT, reads a 4-bit
+ * mosaic value from stream byte[2], stores to global at 0x030007D8.
+ * Advances stream pointer by 3.
+ */
+void StreamCmd_EnableMosaic(void)
+{
+    vu16 *bg2cnt = (vu16 *)0x0400000C;
+    *bg2cnt |= 0x40;
+    bg2cnt++;
+    *bg2cnt |= 0x40;
+
+    *(u8 *)0x030007D8 = gStreamPtr[2] & 0x0F;
+    gStreamPtr += 3;
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c6e0);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c776);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetRenderMode);
 INCLUDE_ASM("asm/nonmatchings/gfx", DispatchLevelLayerSetup);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804c7fc);
+/**
+ * StreamCmd_SetBGScroll: sets scroll position for a BG layer from stream data.
+ *
+ * Stream format: byte[2]=layer index, bytes[3-4]=scrollX, bytes[5-6]=scrollY.
+ * Values are shifted left 4 for subpixel precision before storing to
+ * gBGLayerState[layer].scrollX/Y. Advances stream by 7.
+ */
+/**
+ * StreamCmd_SetBGScroll: sets BG scroll from stream data.
+ * byte[2]=layer, bytes[3-4]=scrollX, bytes[5-6]=scrollY (shifted <<4).
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGScroll);
 /*
  * Reads a palette color entry from a data stream and writes it to BG palette RAM.
  * The stream at *0x03004D84 is a packed format: byte[2] is the palette index,
@@ -317,7 +348,15 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e634);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e6b6);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e708);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e73a);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e76e);
+/**
+ * StreamCmd_StopMusic: stream command to halt all music playback.
+ * Calls StopAllMusicPlayers, advances stream by 2.
+ */
+void StreamCmd_StopMusic(void)
+{
+    StopAllMusicPlayers();
+    gStreamPtr += 2;
+}
 /*
  * Reads a command byte from the data stream and processes it via FUN_08050094.
  * Byte[2] is the command argument. Advances the stream pointer by 3.
@@ -346,9 +385,23 @@ void DispatchMusicStreamCommand(void) {
 
     *(u8 **)0x03004D84 += 3;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7d2);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7e6);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7fa);
+/**
+ * StreamCmd_StopSound: stream command to stop sound effects.
+ * Calls StopSoundEffects, advances stream by 2.
+ * (non_word_aligned — can't match from C due to alignment)
+ */
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_StopSound);
+INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_Nop3);
+/**
+ * StreamCmd_StopMusicAndDisableIRQ: stops all music and disables interrupts.
+ * Calls StopAllMusicPlayers + DisableInterruptsForGfxSetup, advances by 2.
+ */
+void StreamCmd_StopMusicAndDisableIRQ(void)
+{
+    StopAllMusicPlayers();
+    DisableInterruptsForGfxSetup();
+    gStreamPtr += 2;
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e814);
 /*
  * Enables VBlank interrupt and VBlank IRQ status, then calls
@@ -390,7 +443,7 @@ void EnableVBlankAndDispatchMusic(void) {
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e8fe);
 /*
  * Enables VBlank interrupt and VBlank IRQ status, then calls two
- * interrupt setup handlers (EnableInterruptsAfterGfxSetup, FUN_08050134).
+ * interrupt setup handlers (EnableInterruptsAfterGfxSetup, StopSoundEffects).
  * Advances the data stream pointer by 2.
  *   no parameters
  *   no return value
@@ -399,7 +452,7 @@ void EnableVBlankAndHandlers(void) {
     REG_IE |= IE_VBLANK;
     REG_DISPSTAT |= DISPSTAT_VBLANK_IRQ_ENABLE;
     EnableInterruptsAfterGfxSetup();
-    FUN_08050134();
+    StopSoundEffects();
     gStreamPtr += 2;
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e974);
