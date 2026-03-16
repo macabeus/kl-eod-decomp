@@ -759,6 +759,7 @@ def _manual_split_leaf(nm_root, module, parent_fname, trigger_instr,
         f.writelines(new_lines)
 
     # Add INCLUDE_ASM to the C source, right after the parent's INCLUDE_ASM
+    # (only if not already present)
     parent_name = parent_fname[:-2]  # strip .s
     src_dir = os.path.join(ROOT, "src")
     include_line = f'INCLUDE_ASM("asm/nonmatchings/{module}", {new_name});\n'
@@ -858,6 +859,18 @@ def _apply_renames():
                 if old_name in content:
                     with open(fpath, "w") as f:
                         f.write(content.replace(old_name, new_name))
+
+        # Update INCLUDE_ASM references in C sources
+        src_dir = os.path.join(ROOT, "src")
+        for cfname in os.listdir(src_dir):
+            if not cfname.endswith(".c"):
+                continue
+            cpath = os.path.join(src_dir, cfname)
+            with open(cpath) as f:
+                content = f.read()
+            if old_name in content:
+                with open(cpath, "w") as f:
+                    f.write(content.replace(old_name, new_name))
 
     if RENAMES:
         print(f"  Applied {len(RENAMES)} function renames")

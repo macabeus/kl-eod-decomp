@@ -205,7 +205,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804fbe0);
  * Silences all channels, resets playback state, and releases
  * voice allocations. Third largest function in m4a (313 lines).
  *   313 lines
- *   calls: PlaySoundWithContext_D8 (FUN_0805031c)
+ *   calls: PlaySoundWithContext_D8 (PlaySoundWithContext_D8)
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804fc10);
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804fe10);
@@ -265,7 +265,7 @@ void SoundInit(void) {
  *   r0: song ID (0-38 for BGM, 39+ for SFX)
  *   21 lines, calls LoadSoundData (FUN_080506fc)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0804ffc8);
+INCLUDE_ASM("asm/nonmatchings/m4a", InitSceneState);
 /*
  * m4aSongNumContinue: continue or queue a music track.
  * If the same song is already playing, does nothing.
@@ -387,7 +387,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", FUN_08050344);
  * SoundTimerSetup: configure timer for PCM sample rate.
  * Sets TM0/TM1 to generate interrupts at the mixing frequency,
  * which triggers DMA transfers to refill the FIFO buffers.
- *   72 lines, calls m4aSoundVSyncOn (FUN_08050648), FUN_080518a4
+ *   72 lines, calls m4aSoundVSyncOn (EnableInterruptsAfterGfxSetup), FUN_080518a4
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0805043c);
 /*
@@ -396,7 +396,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", FUN_0805043c);
  * on the game's audio requirements.
  *   80 lines
  *   HW: REG_SOUNDBIAS (0x04000089)
- *   calls: SoundTimerSetup, m4aSoundShutdown (FUN_080505cc)
+ *   calls: SoundTimerSetup, m4aSoundShutdown (DisableInterruptsForGfxSetup)
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_080504e0);
 /*
@@ -411,7 +411,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", FUN_08050578);
  * Called during fatal errors or system shutdown.
  *   59 lines, calls BitUnPack
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", FUN_080505cc);
+INCLUDE_ASM("asm/nonmatchings/m4a", DisableInterruptsForGfxSetup);
 
 /* ── VBlank Sound Update Pipeline ── */
 
@@ -422,7 +422,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", FUN_080505cc);
  *   30 lines, leaf function
  *   refs: REG_SOUNDCNT_H (0x040000C6)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", FUN_08050648);
+INCLUDE_ASM("asm/nonmatchings/m4a", EnableInterruptsAfterGfxSetup);
 /*
  * VBlankSoundCallback: VBlank-triggered sound update routine.
  * Called by the VBlank interrupt handler to process pending

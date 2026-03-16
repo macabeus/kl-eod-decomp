@@ -76,11 +76,31 @@
 /* Game state flags struct (byte fields at various offsets). */
 #define gGameFlags               ((u8 *)0x03005400)
 
-/* Configuration/output buffer struct (16-bit fields, dimensions/coords). */
-#define gConfigBuffer            ((u8 *)0x03003430)
+/* BG layer configuration struct array (3 entries, 0x1C=28 bytes each).
+ * Each entry controls one hardware BG layer:
+ *   +0x00: u32 tileVramDest   - VRAM charblock address for tile DMA
+ *   +0x04: u32 tmapVramDest   - VRAM screenbase address for tilemap DMA
+ *   +0x08: u16 scrollX        - horizontal scroll position (subpixel)
+ *   +0x0A: u16 scrollY        - vertical scroll position (subpixel)
+ *   +0x10: u16 mapWidth       - tilemap width in tiles
+ *   +0x12: u16 mapHeight      - tilemap height in tiles
+ *   +0x14: u16 flags
+ *   +0x16: u16 dmaTileCount   - number of tile rows for DMA
+ *   +0x18: u8  dmaRowSize     - bytes per DMA row
+ * Initialized by InitLevelBG with charblock assignments:
+ *   Entry 0: tileVram=0x06000000, tmapVram=0x0600E000
+ *   Entry 1: tileVram=0x06004000, tmapVram=0x0600E800
+ *   Entry 2: tileVram=0x06008000, tmapVram=0x0600F000 */
+#define gBGLayerState            ((u8 *)0x03003430)
 
-/* Pointer/handle array for buffers. */
-#define gHandleArray             ((u8 *)0x03004790)
+/* Decompress/DMA buffer control struct.
+ * Holds pointers to allocated decompression buffers during scene setup.
+ *   +0x00: buf0  (tile data A / tilemap layer 0)
+ *   +0x04: buf1  (tile data B / tilemap layer 1)
+ *   +0x08: buf2  (tile data C)
+ *   +0x0C: buf3  (tile data D)
+ *   +0x14: buf5  (tilemap layer 2) */
+#define gDecompBufferCtrl        ((u8 *)0x03004790)
 
 /* Entity/object pointer (double indirection). */
 #define gEntityPtr               (*(u32 *)0x03004654)
@@ -94,8 +114,13 @@
 /* Mixed-mode struct (byte + halfword fields). */
 #define gMixedState              ((u8 *)0x03003510)
 
-/* DMA buffer source address. */
-#define gDmaBufferAddr           (*(u32 *)0x030007DC)
+/* VRAM write cursor: current palette RAM destination for DMA transfers.
+ * Advanced by 0x20 after each 32-byte palette DMA during scene setup. */
+#define gVramWriteCursor         (*(u32 *)0x030007DC)
+
+/* Palette VRAM write cursor: tracks current VRAM destination during
+ * sequential tile/palette DMA transfers in scene setup. */
+#define gPaletteVramCursor       (*(u32 *)0x03005490)
 
 /* ── UI / Text Rendering ── */
 
@@ -145,6 +170,74 @@
 /* Graphics asset / tileset tables used by InitGraphicsSystem. */
 #define ROM_GFX_ASSET_TABLE      0x0818B7AC
 #define ROM_TILESET_TABLE        0x0818B8E0
+
+/* ── Background Layer Tables ── */
+
+/* BG tile data pointer table: 162 u32 ROM pointers to compressed tile charblock data.
+ * Indexed as: (vision-1)*27 + world*3 + layer, where vision=1-6, world=0-8, layer=0-2.
+ * Each entry points to a compressed asset with a 4-byte sub-header (BGCNT template)
+ * followed by 4bpp tile character data. */
+#define ROM_BG_TILE_TABLE        0x08189034
+
+/* BG tilemap pointer table: 162 u32 ROM pointers to compressed screenblock data.
+ * Same indexing as ROM_BG_TILE_TABLE.
+ * Each entry points to compressed tilemap data (u16 per cell:
+ * bits 0-9=tileID, bit10=hflip, bit11=vflip, bits12-15=palBank). */
+#define ROM_BG_TILEMAP_TABLE     0x081892BC
+
+/* BG palette pointer table: 54 u32 ROM pointers to compressed palette data.
+ * Indexed as: (vision-1)*9 + world.
+ * Each entry points to 512 bytes of GBA RGB555 palette (16 banks x 16 colors). */
+#define ROM_BG_PALETTE_TABLE     0x08188F5C
+
+/* BG tile/tilemap configuration lookup table.
+ * Used by LoadBGTileData and LoadBGTilemapData to map (sceneIdx, layerIdx)
+ * to an entry index into the BG layer struct and ROM data tables. */
+#define ROM_BG_LOOKUP_TABLE      0x08057ACC
+
+/* BG tile ROM pointer sub-table.
+ * Indexed by entry from ROM_BG_LOOKUP_TABLE to select compressed tile data. */
+#define ROM_BG_TILE_SUBTABLE     0x08189BCC
+
+/* BG tilemap ROM pointer sub-table.
+ * Used by LoadBGTilemapData for per-entry tilemap data selection. */
+#define ROM_BG_TILEMAP_SUBTABLE  0x08189CCC
+
+/* BG dimension lookup tables: map (vision, world) to tilemap width/height.
+ * Each is a 54-entry table of u16 values (6 visions x 9 worlds). */
+#define ROM_BG_WIDTH_TABLE       0x08051C76
+#define ROM_BG_HEIGHT_TABLE      0x08051DBA
+#define ROM_BG_TILECOUNT_TABLE   0x08051EFE
+#define ROM_BG_STRIDE_TABLE      0x08052042
+
+/* ── Scene-Specific Shared Tilesets ── */
+
+/* These compressed tilesets are loaded into VRAM charblocks during scene init
+ * (SetupSceneGfx / FUN_0804886c). They provide shared tiles (HUD, items, etc.)
+ * that are referenced by per-level BG tilemaps via absolute tile IDs. */
+#define ROM_SCENE_TILESET_A      0x08366214  /* -> charblocks 0-3 via palettePtr */
+#define ROM_SCENE_TILESET_B      0x08367468  /* -> small OBJ tiles */
+#define ROM_SCENE_TILES_CB0      0x082F4D3C  /* -> VRAM 0x06000000 (charblock 0) */
+#define ROM_SCENE_TILES_CB1      0x082F518C  /* -> VRAM 0x06004000 (charblock 1) */
+#define ROM_SCENE_TILES_CB2      0x082F5D0C  /* -> VRAM 0x06008000 (charblock 2) */
+#define ROM_SCENE_TILES_CB3      0x082F7D64  /* -> VRAM 0x0600C000 (charblock 3) */
+#define ROM_SCENE_TILEMAP_DATA   0x082F5920  /* -> IWRAM tilemap buffers */
+
+/* Scene-specific palette data loaded during SetupSceneGfx. */
+#define ROM_SCENE_PALETTE_A      0x08078F88
+#define ROM_SCENE_PALETTE_B      0x08078FA8
+
+/* OBJ (sprite) tileset for scene overlay. */
+#define ROM_SCENE_OBJ_TILES      0x082F4934
+
+/* Sprite layout table for HUD/scene overlay objects.
+ * 12-byte entries terminated by 0xFFFF. */
+#define ROM_SCENE_SPRITE_TABLE   0x08116590
+
+/* World map BG tile data. */
+#define ROM_WORLDMAP_TILES       0x082EA584
+#define ROM_WORLDMAP_TILEMAP     0x082EA730
+#define ROM_WORLDMAP_PALETTE     0x082EA7F0
 
 /* ── Sound ROM Data Tables ── */
 

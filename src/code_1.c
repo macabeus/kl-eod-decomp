@@ -7,7 +7,7 @@ INCLUDE_ASM("asm/nonmatchings/code_1", FUN_0801367e);
 INCLUDE_ASM("asm/nonmatchings/code_1", FUN_08014184);
 INCLUDE_ASM("asm/nonmatchings/code_1", FUN_08014230);
 INCLUDE_ASM("asm/nonmatchings/code_1", FUN_08014318);
-INCLUDE_ASM("asm/nonmatchings/code_1", FUN_080144c4);
+INCLUDE_ASM("asm/nonmatchings/code_1", InitScrollState);
 INCLUDE_ASM("asm/nonmatchings/code_1", FUN_080145a8);
 INCLUDE_ASM("asm/nonmatchings/code_1", FUN_08014624);
 INCLUDE_ASM("asm/nonmatchings/code_1", FUN_08014760);

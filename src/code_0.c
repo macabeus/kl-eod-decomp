@@ -1,7 +1,7 @@
 #include "global.h"
 #include "include_asm.h"
 
-INCLUDE_ASM("asm/nonmatchings/code_0", FUN_08003dc0); /* DrawSpriteTiles — core sprite/tile VRAM writer */
+INCLUDE_ASM("asm/nonmatchings/code_0", SetupOAMSprite); /* DrawSpriteTiles — core sprite/tile VRAM writer */
 INCLUDE_ASM("asm/nonmatchings/code_0", FUN_08005cf4); /* RenderHUDTop */
 INCLUDE_ASM("asm/nonmatchings/code_0", FUN_08005fa4); /* RenderHUDBottom */
 INCLUDE_ASM("asm/nonmatchings/code_0", FUN_080070a0); /* RenderMenuUI */

@@ -3,16 +3,16 @@
 #include "globals.h"
 #include "include_asm.h"
 
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_080480f4);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804832c);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_08048498);
+INCLUDE_ASM("asm/nonmatchings/gfx", InitGfxState);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGScrollRegisters);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGTileAnimation);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_08048768);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_080487b4);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804886c);
+INCLUDE_ASM("asm/nonmatchings/gfx", SetupSceneGfx);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_080491c0);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_08049348);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_08049726);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_08049bfc);
+INCLUDE_ASM("asm/nonmatchings/gfx", LoadBGPalette);
+INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGPaletteAnimation);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_08049efc);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804a070);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804af00);
@@ -49,35 +49,37 @@ u32 ReadUnalignedU32(u8 *ptr) {
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b28a);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b2a0);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b2ec);
-/*
- * Decompresses data from ROM, DMA-copies it to a destination,
- * then frees the decompression buffer. Waits for DMA to complete.
- *   src: pointer to compressed data
- *   dest: DMA destination address (VRAM, palette RAM, etc.)
- *   byteCount: number of bytes to transfer
+/**
+ * DecompressAndDmaCopy: decompress ROM data and DMA to a VRAM destination.
+ *
+ * Allocates a temp buffer, decompresses the source data (processing the
+ * 4-byte sub-header), DMAs the payload (skipping the sub-header) to the
+ * destination, waits for DMA completion, then frees the temp buffer.
+ *
+ *   src:  ROM pointer to compressed data
+ *   dest: VRAM destination address
+ *   size: byte count for DMA transfer
  */
-void DecompressAndDmaCopy(u32 *src, u32 dest, u32 byteCount) {
-    u32 buf;
-    vu32 *dma3;
-    u32 ctrl;
+void DecompressAndDmaCopy(u32 src, u32 dest, u32 size)
+{
+    u32 buf = AllocAndDecompress((u32 *)src);
+    DecompressData(buf, src);
 
-    buf = AllocAndDecompress(src);
-    FUN_08043af4(buf, (u32)src);
+    {
+        vu32 *dma3 = (vu32 *)0x040000D4;
+        dma3[0] = buf + 4;
+        dma3[1] = dest;
+        dma3[2] = (size >> 1) | 0x80000000;
+        (void)dma3[2];
 
-    dma3 = (vu32 *)0x040000D4;
-    dma3[0] = buf + 4;
-    dma3[1] = dest;
-    ctrl = (byteCount >> 1) | 0x80000000;
-    dma3[2] = ctrl;
-    (void)dma3[2];
-
-    while (dma3[2] & 0x80000000)
-        ;
+        while (dma3[2] & 0x80000000)
+            ;
+    }
 
     thunk_FUN_0800020c(buf);
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b464);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b4b0);
+INCLUDE_ASM("asm/nonmatchings/gfx", LoadBGTileData);
+INCLUDE_ASM("asm/nonmatchings/gfx", LoadBGTilemapData);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804b920);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bab4);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bad4);
@@ -95,7 +97,7 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bb88);
 void FreeBuffer_52A4(void) {
     thunk_FUN_0800020c(gBuffer_52A4);
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bbd4);
+INCLUDE_ASM("asm/nonmatchings/gfx", SetupWorldMapBG);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bd10);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bd8a);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804bdb4);
@@ -237,7 +239,7 @@ void ProcessStreamCommand_50094(void) {
 /*
  * Dispatches a sound/music stream command based on byte[2] of the data stream.
  * If byte[2] <= 0x22, passes it directly; otherwise re-reads and passes it.
- * Both paths call FUN_0804ffc8. Advances the stream pointer by 3.
+ * Both paths call InitSceneState. Advances the stream pointer by 3.
  *   no parameters (reads from global data stream pointer at 0x03004D84)
  *   no return value
  */
@@ -245,9 +247,9 @@ void DispatchMusicStreamCommand(void) {
     u8 *ptr = *(u8 **)0x03004D84;
 
     if (ptr[2] <= 0x22) {
-        FUN_0804ffc8(ptr[2]);
+        InitSceneState(ptr[2]);
     } else {
-        FUN_0804ffc8(ptr[2]);
+        InitSceneState(ptr[2]);
     }
 
     *(u8 **)0x03004D84 += 3;
@@ -258,19 +260,19 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e7fa);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e814);
 /*
  * Enables VBlank interrupt and VBlank IRQ status, then calls
- * FUN_08050648 to set up the handler. Advances the data stream by 2.
+ * EnableInterruptsAfterGfxSetup to set up the handler. Advances the data stream by 2.
  *   no parameters
  *   no return value
  */
 void EnableVBlankHandler(void) {
     REG_IE |= IE_VBLANK;
     REG_DISPSTAT |= DISPSTAT_VBLANK_IRQ_ENABLE;
-    FUN_08050648();
+    EnableInterruptsAfterGfxSetup();
     gStreamPtr += 2;
 }
 /*
- * Enables VBlank interrupt and IRQ, sets up handler via FUN_08050648,
- * then dispatches a music stream command via FUN_0804ffc8 using byte[2].
+ * Enables VBlank interrupt and IRQ, sets up handler via EnableInterruptsAfterGfxSetup,
+ * then dispatches a music stream command via InitSceneState using byte[2].
  * Advances the data stream pointer by 3.
  *   no parameters (reads from global data stream pointer at 0x03004D84)
  *   no return value
@@ -282,13 +284,13 @@ void EnableVBlankAndDispatchMusic(void) {
     if (ptr[2] <= 0x22) {
         *(vu16 *)0x04000200 |= 1;
         *(vu16 *)0x04000004 |= 8;
-        FUN_08050648();
-        FUN_0804ffc8((*gp)[2]);
+        EnableInterruptsAfterGfxSetup();
+        InitSceneState((*gp)[2]);
     } else {
         *(vu16 *)0x04000200 |= 1;
         *(vu16 *)0x04000004 |= 8;
-        FUN_08050648();
-        FUN_0804ffc8((*gp)[2]);
+        EnableInterruptsAfterGfxSetup();
+        InitSceneState((*gp)[2]);
     }
 
     *(u8 **)0x03004D84 += 3;
@@ -296,7 +298,7 @@ void EnableVBlankAndDispatchMusic(void) {
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e8fe);
 /*
  * Enables VBlank interrupt and VBlank IRQ status, then calls two
- * interrupt setup handlers (FUN_08050648, FUN_08050134).
+ * interrupt setup handlers (EnableInterruptsAfterGfxSetup, FUN_08050134).
  * Advances the data stream pointer by 2.
  *   no parameters
  *   no return value
@@ -304,7 +306,7 @@ INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e8fe);
 void EnableVBlankAndHandlers(void) {
     REG_IE |= IE_VBLANK;
     REG_DISPSTAT |= DISPSTAT_VBLANK_IRQ_ENABLE;
-    FUN_08050648();
+    EnableInterruptsAfterGfxSetup();
     FUN_08050134();
     gStreamPtr += 2;
 }
