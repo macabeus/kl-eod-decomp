@@ -139,6 +139,20 @@ FUN_0804bd8a = "ClearScreenBufferB_Alt"
 FUN_08048768 = "FadeOutController"
 FUN_0804bdb4 = "InitLevelStateDefaults"
 FUN_0804e5f0 = "StreamCmd_SetBlendMode"
+
+# System / utility functions
+FUN_0800043c = "Abs"
+FUN_08000448 = "StrCmp"
+FUN_0800045e = "ReturnOne"
+FUN_08000460 = "StrCpy"
+FUN_08000948 = "FixedMul8"
+
+# Engine functions
+FUN_08000f70 = "UpdateFadeEffect"
+FUN_08000fa2 = "HBlankScrollUpdate"
+FUN_0800111e = "WaitVBlankAndClearMosaic"
+FUN_0800113e = "AcknowledgeInterrupt"
+FUN_08003da0 = "ClearOamEntries6Plus"
 FUN_0804e8fe = "StreamCmd_DisableVBlankAndStopMusic"
 FUN_0804bf7c = "ShutdownGfxSubsystem"
 FUN_0804bb3c = "AllocAndClearGfxBuffer"
