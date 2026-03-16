@@ -467,6 +467,17 @@
                 <tr><td class="mono">0x0804BE08</td><td>SetupGfxCallbacks</td><td>gfx</td><td>Initializes VBlank/HBlank callback function pointers</td></tr>
                 <tr><td class="mono">0x08048768</td><td>FadeOutController</td><td>gfx</td><td>Manages BG scroll fade-out + callback transition</td></tr>
                 <tr><td class="mono">0x0804BDB4</td><td>InitLevelStateDefaults</td><td>gfx</td><td>Sets default map dimensions, scroll, window registers</td></tr>
+                <tr><td class="mono">0x0804BD8A</td><td>ClearScreenBufferB_Alt</td><td>gfx</td><td>Alternate screenblock fill (non-word-aligned variant)</td></tr>
+                <tr><td class="mono">0x0804E5F0</td><td>StreamCmd_SetBlendMode</td><td>gfx</td><td>Sets REG_BLDCNT from blend mode lookup table</td></tr>
+                <tr><td class="mono">0x08000F70</td><td>UpdateFadeEffect</td><td>engine</td><td>Applies brightness fade using REG_BLDY</td></tr>
+                <tr><td class="mono">0x08000FA2</td><td>HBlankScrollUpdate</td><td>engine</td><td>Writes BG scroll from scanline-indexed tables</td></tr>
+                <tr><td class="mono">0x0800111E</td><td>WaitVBlankAndClearMosaic</td><td>engine</td><td>Waits for VBlank, clears REG_MOSAIC</td></tr>
+                <tr><td class="mono">0x0800113E</td><td>AcknowledgeInterrupt</td><td>engine</td><td>Writes REG_IE to REG_IF (interrupt acknowledge)</td></tr>
+                <tr><td class="mono">0x08003DA0</td><td>ClearOamEntries6Plus</td><td>engine</td><td>Zeroes OAM shadow entries 6&ndash;91</td></tr>
+                <tr><td class="mono">0x0800043C</td><td>Abs</td><td>system</td><td>Absolute value of signed integer</td></tr>
+                <tr><td class="mono">0x08000448</td><td>StrCmp</td><td>system</td><td>Byte-by-byte string comparison</td></tr>
+                <tr><td class="mono">0x08000460</td><td>StrCpy</td><td>system</td><td>Null-terminated string copy</td></tr>
+                <tr><td class="mono">0x08000948</td><td>FixedMul8</td><td>system</td><td>8.8 fixed-point signed multiply (s16&times;s16 &raquo; 8)</td></tr>
             </tbody>
         </table>
 
@@ -541,6 +552,7 @@
                 <tr><td class="mono">StreamCmd_StopMusic</td><td>Matched</td><td>Stream command: halt all music</td></tr>
                 <tr><td class="mono">StreamCmd_StopMusicAndDisableIRQ</td><td>Matched</td><td>Stream command: stop music + disable IRQ</td></tr>
                 <tr><td class="mono">StreamCmd_DisableVBlank</td><td>Matched</td><td>Stream command: disable VBlank interrupt</td></tr>
+                <tr><td class="mono">UpdateFadeEffect</td><td>Matched</td><td>Applies brightness fade via REG_BLDY</td></tr>
             </tbody>
         </table>
 
@@ -568,6 +580,9 @@
                 <tr><td class="mono">StreamCmd_DisableVBlankAndStopMusic</td><td>Non-word-aligned function start</td></tr>
                 <tr><td class="mono">InitGfxStreamState</td><td>DMA3 with stack-allocated source</td></tr>
                 <tr><td class="mono">ResetGfxStreamEntries</td><td>Loop structure / pointer arithmetic mismatch</td></tr>
+                <tr><td class="mono">Abs, StrCmp, StrCpy, FixedMul8</td><td>Hand-written <code>bx lr</code> utility leaves (system module)</td></tr>
+                <tr><td class="mono">HBlankScrollUpdate, AcknowledgeInterrupt</td><td>Non-word-aligned <code>bx lr</code> engine leaves</td></tr>
+                <tr><td class="mono">FinalizeLevelLayerSetup, LoadAndDecompressStream</td><td><code>ldr</code>-before-ALU in table-indexed lookups</td></tr>
             </tbody>
         </table>
 
