@@ -55,6 +55,22 @@ Each source file in `src/` represents a module defined in `klonoa-eod-decomp.tom
   ```
   If `.venv` doesn't exist yet, run `./setup.sh` which creates it and installs dependencies.
 
+- **Run `make format` before every commit** that touches C or header files. CI enforces `make check_format`.
+
+- **One commit per matched function.** Each successfully decompiled function gets its own commit with a descriptive message explaining the matching technique used.
+
+- **Every decompiled function must have a semantic name and docstring.** No `FUN_XXXXXXXX` names in committed C code. Add a rename in `klonoa-eod-decomp.toml` and a `/** docstring */` above the function.
+
+- **Check GitHub issues before decompiling.** Reference issues in commits/PRs. Post findings (techniques, blockers) on relevant issues when a match succeeds or fails.
+
+- **PRs use feature branches.** Create a branch from `main`, push, open PR against upstream. Never push work directly to `main`. Delete branches after merge.
+
+- **Update the website when learning about architecture.** When decompilation reveals how a subsystem works, update the gh-pages documentation (graphics-engine.html, game-engine.html, sound.html, matching.html, etc.).
+
+- **"decomp more" means:** look for related functions near already-matched ones, assign semantic symbols, write docstrings, try matching with known techniques.
+
+- **"more symbols" means:** name ALL addressable things — functions, sub-function entry points, IWRAM globals, ROM data tables, struct fields, constants.
+
 ## Key Configuration Files
 
 - **klonoa-eod-decomp.toml**: Module start addresses and function renames
