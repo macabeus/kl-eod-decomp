@@ -733,7 +733,19 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCommandDispatch);
  *   r0: sound context, r1: channel struct
  *   16 lines, calls DispatchSoundCommand (FUN_08051870)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", SoundCmd_Dispatch);
+void FUN_08051870(u32, u32 *, u32);
+void SoundCmd_Dispatch(u32 ctx, u32 *channel)
+{
+    u8 *ptr = (u8 *)channel[0x40 / 4];
+    u8 cmd = *ptr;
+    channel[0x40 / 4] = (u32)(ptr + 1);
+    {
+        u32 a0 = 0x08117C8C;
+        u32 *table;
+        asm("" : "=r"(table) : "0"(a0));
+        FUN_08051870(ctx, channel, table[cmd]);
+    }
+}
 /*
  * Dispatches a sound command through DispatchSoundCommand (FUN_08051870)
  * using the global sound table pointer.
