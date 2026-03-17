@@ -6,7 +6,47 @@
 INCLUDE_ASM("asm/nonmatchings/gfx", InitGfxState);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGScrollRegisters);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGTileAnimation);
-INCLUDE_ASM("asm/nonmatchings/gfx", FadeOutController);
+void UpdateBGScrollRegisters(void);
+void DisableInterruptsForGfxSetup(void);
+void StopAllMusicPlayers(void);
+void UpdateSceneTransition(void);
+/**
+ * FadeOutController: manages screen fade-out, updating fade counter
+ * and switching to scene transition when complete.
+ */
+void FadeOutController(void)
+{
+    u32 a0 = 0x03004C20;
+    u32 *sceneCtrl;
+    asm("" : "=r"(sceneCtrl) : "0"(a0));
+
+    if (sceneCtrl[0] == 0)
+        UpdateBGScrollRegisters();
+
+    {
+        u32 val = sceneCtrl[0];
+        u32 a1 = 0x03005498;
+        u8 *fadeCounter;
+        asm("" : "+r"(val));
+        asm("" : "=r"(fadeCounter) : "0"(a1));
+
+        if (val > 0x0F)
+            *fadeCounter = (val - 0x10) >> 1;
+
+        if (*fadeCounter > 0x0F) {
+            sceneCtrl[0] = (u32)-1;
+            {
+                u32 a2 = 0x03003510;
+                u32 *cbState;
+                asm("" : "=r"(cbState) : "0"(a2));
+                cbState[1] = (u32)UpdateSceneTransition;
+            }
+        }
+    }
+
+    DisableInterruptsForGfxSetup();
+    StopAllMusicPlayers();
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateSceneTransition);
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupSceneGfx);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateUIElementAnimation);
