@@ -92,14 +92,44 @@
  * Most-referenced address in the entire codebase (1634 refs). */
 #define gEntityArray             ((u8 *)0x03002920)
 
+/* OAM shadow buffer entry pointer (used for sprite attribute writes). */
+#define gOamEntryPtr             (*(u32 *)0x03000820)
+
+/* Entity work buffer / scratch space (allocated during transitions). */
+#define gEntityWorkBuffer        ((u8 *)0x03002910)
+
+/* Entity index/status lookup table (entity behavior state tracking). */
+#define gEntityStatusTable       ((u8 *)0x0300363C)
+
+/* Current entity context pointer (0x40 bytes, entity field access). */
+#define gCurrentEntityCtx        (*(u32 *)0x03004670)
+
+/* Entity source table pointer (0x18 bytes, sprite/position data). */
+#define gEntitySourcePtr         (*(u32 *)0x03004658)
+
+/* Level/entity data pointer (dereferenced for level layout data). */
+#define gLevelDataPtr            (*(u32 *)0x03005288)
+
 /* Global control/state block — flags and status at word/byte offsets. */
 #define gControlBlock            ((u8 *)0x03004C20)
+
+/* Control block secondary flags (game state transitions, bit fields). */
+#define gControlFlags            ((u8 *)0x03004C08)
 
 /* Game state struct array (byte-field access, ~200+ bytes per entry). */
 #define gGameStateArray          ((u8 *)0x03005220)
 
 /* Game state flags struct (byte fields at various offsets). */
 #define gGameFlags               ((u8 *)0x03005400)
+
+/* Frame/animation/particle state buffer (entity behavior state). */
+#define gAnimStateBuffer         ((u8 *)0x03003590)
+
+/* Graphics/decompression buffer control (0x2C bytes). */
+#define gGfxDecompCtrl           (*(u32 *)0x030047FC)
+
+/* UI/rendering state block (byte fields with 4-bit masks). */
+#define gUIRenderState           ((u8 *)0x030034B0)
 
 /* BG layer configuration struct array (3 entries, 0x1C=28 bytes each).
  * Each entry controls one hardware BG layer:
