@@ -51,7 +51,7 @@ INCLUDE_ASM("asm/nonmatchings/system", LoadSpriteFrame);
  * then conditionally frees gCollisionMapPtr.
  */
 void thunk_FUN_0800020c(u32);
-void InitSceneState(u32);
+void m4aSongNumStart(u32);
 void FreeAllDecompBuffers(void) {
     u32 a0 = 0x03004790;
     u32 *bufs;
@@ -74,10 +74,10 @@ void FreeAllDecompBuffers(void) {
         }
     }
 
-    InitSceneState(0x8D);
-    InitSceneState(0x8E);
-    InitSceneState(0x8F);
-    InitSceneState(0x90);
+    m4aSongNumStart(0x8D);
+    m4aSongNumStart(0x8E);
+    m4aSongNumStart(0x8F);
+    m4aSongNumStart(0x90);
 }
 
 /**

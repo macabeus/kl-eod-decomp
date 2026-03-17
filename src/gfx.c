@@ -7,8 +7,8 @@ INCLUDE_ASM("asm/nonmatchings/gfx", InitGfxState);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGScrollRegisters);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateBGTileAnimation);
 void UpdateBGScrollRegisters(void);
-void DisableInterruptsForGfxSetup(void);
-void StopAllMusicPlayers(void);
+void m4aSoundVSyncOff(void);
+void m4aMPlayAllStop(void);
 void UpdateSceneTransition(void);
 /**
  * FadeOutController: manages screen fade-out, updating fade counter
@@ -43,8 +43,8 @@ void FadeOutController(void) {
         }
     }
 
-    DisableInterruptsForGfxSetup();
-    StopAllMusicPlayers();
+    m4aSoundVSyncOff();
+    m4aMPlayAllStop();
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateSceneTransition);
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupSceneGfx);
@@ -262,7 +262,7 @@ void ShutdownGfxSubsystem(void) {
     FreeBuffer_52A4();
     FreeGfxBuffer();
     FreeDecompStreamBuffer();
-    StopAllMusicPlayers();
+    m4aMPlayAllStop();
 }
 /**
  * InitGfxStreamState: allocates stream buffer, clears OAM, resets cursors.
@@ -440,10 +440,10 @@ INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetWindowRegs);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_EnableScrollMode);
 /**
  * StreamCmd_StopMusic: stream command to halt all music playback.
- * Calls StopAllMusicPlayers, advances stream by 2.
+ * Calls m4aMPlayAllStop, advances stream by 2.
  */
 void StreamCmd_StopMusic(void) {
-    StopAllMusicPlayers();
+    m4aMPlayAllStop();
     gStreamPtr += 2;
 }
 /*
@@ -459,7 +459,7 @@ void ProcessStreamCommand_50094(void) {
 /*
  * Dispatches a sound/music stream command based on byte[2] of the data stream.
  * If byte[2] <= 0x22, passes it directly; otherwise re-reads and passes it.
- * Both paths call InitSceneState. Advances the stream pointer by 3.
+ * Both paths call m4aSongNumStart. Advances the stream pointer by 3.
  *   no parameters (reads from global data stream pointer at 0x03004D84)
  *   no return value
  */
@@ -467,9 +467,9 @@ void DispatchMusicStreamCommand(void) {
     u8 *ptr = *(u8 **)0x03004D84;
 
     if (ptr[2] <= 0x22) {
-        InitSceneState(ptr[2]);
+        m4aSongNumStart(ptr[2]);
     } else {
-        InitSceneState(ptr[2]);
+        m4aSongNumStart(ptr[2]);
     }
 
     *(u8 **)0x03004D84 += 3;
@@ -483,38 +483,38 @@ INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_StopSound);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_Nop3);
 /**
  * StreamCmd_StopMusicAndDisableIRQ: stops all music and disables interrupts.
- * Calls StopAllMusicPlayers + DisableInterruptsForGfxSetup, advances by 2.
+ * Calls m4aMPlayAllStop + m4aSoundVSyncOff, advances by 2.
  */
 void StreamCmd_StopMusicAndDisableIRQ(void) {
-    StopAllMusicPlayers();
-    DisableInterruptsForGfxSetup();
+    m4aMPlayAllStop();
+    m4aSoundVSyncOff();
     gStreamPtr += 2;
 }
 /**
  * StreamCmd_DisableVBlank: disables VBlank interrupt and calls
- * DisableInterruptsForGfxSetup. Advances stream by 2.
+ * m4aSoundVSyncOff. Advances stream by 2.
  */
 void StreamCmd_DisableVBlank(void) {
     *(vu16 *)0x04000200 &= 0xFFFE; /* REG_IE &= ~INT_VBLANK */
     *(vu16 *)0x04000004 &= 0xFFF7; /* REG_DISPSTAT &= ~VBLANK_IRQ */
-    DisableInterruptsForGfxSetup();
+    m4aSoundVSyncOff();
     gStreamPtr += 2;
 }
 /*
  * Enables VBlank interrupt and VBlank IRQ status, then calls
- * EnableInterruptsAfterGfxSetup to set up the handler. Advances the data stream by 2.
+ * m4aSoundVSyncOn to set up the handler. Advances the data stream by 2.
  *   no parameters
  *   no return value
  */
 void EnableVBlankHandler(void) {
     REG_IE |= IE_VBLANK;
     REG_DISPSTAT |= DISPSTAT_VBLANK_IRQ_ENABLE;
-    EnableInterruptsAfterGfxSetup();
+    m4aSoundVSyncOn();
     gStreamPtr += 2;
 }
 /*
- * Enables VBlank interrupt and IRQ, sets up handler via EnableInterruptsAfterGfxSetup,
- * then dispatches a music stream command via InitSceneState using byte[2].
+ * Enables VBlank interrupt and IRQ, sets up handler via m4aSoundVSyncOn,
+ * then dispatches a music stream command via m4aSongNumStart using byte[2].
  * Advances the data stream pointer by 3.
  *   no parameters (reads from global data stream pointer at 0x03004D84)
  *   no return value
@@ -526,13 +526,13 @@ void EnableVBlankAndDispatchMusic(void) {
     if (ptr[2] <= 0x22) {
         *(vu16 *)0x04000200 |= 1;
         *(vu16 *)0x04000004 |= 8;
-        EnableInterruptsAfterGfxSetup();
-        InitSceneState((*gp)[2]);
+        m4aSoundVSyncOn();
+        m4aSongNumStart((*gp)[2]);
     } else {
         *(vu16 *)0x04000200 |= 1;
         *(vu16 *)0x04000004 |= 8;
-        EnableInterruptsAfterGfxSetup();
-        InitSceneState((*gp)[2]);
+        m4aSoundVSyncOn();
+        m4aSongNumStart((*gp)[2]);
     }
 
     *(u8 **)0x03004D84 += 3;
@@ -540,7 +540,7 @@ void EnableVBlankAndDispatchMusic(void) {
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_DisableVBlankAndStopMusic);
 /*
  * Enables VBlank interrupt and VBlank IRQ status, then calls two
- * interrupt setup handlers (EnableInterruptsAfterGfxSetup, StopSoundEffects).
+ * interrupt setup handlers (m4aSoundVSyncOn, StopSoundEffects).
  * Advances the data stream pointer by 2.
  *   no parameters
  *   no return value
@@ -548,7 +548,7 @@ INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_DisableVBlankAndStopMusic);
 void EnableVBlankAndHandlers(void) {
     REG_IE |= IE_VBLANK;
     REG_DISPSTAT |= DISPSTAT_VBLANK_IRQ_ENABLE;
-    EnableInterruptsAfterGfxSetup();
+    m4aSoundVSyncOn();
     StopSoundEffects();
     gStreamPtr += 2;
 }
