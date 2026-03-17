@@ -139,7 +139,28 @@ INCLUDE_ASM("asm/nonmatchings/m4a", StreamCmd_SetChannelMode);
  * reads u16 from stream bytes[4-5] -> gSoundInfo[0x12].
  * Advances stream by 6.
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", StreamCmd_SetSoundFreqs);
+u32 ReadUnalignedU16(u8 *);
+void StreamCmd_SetSoundFreqs(void)
+{
+    u32 a0 = 0x03004D84;
+    u8 **streamRef;
+    u16 val;
+    asm("" : "=r"(streamRef) : "0"(a0));
+
+    val = ReadUnalignedU16(*streamRef + 2);
+
+    {
+        u32 a1 = 0x0300081C;
+        u16 **infoRef;
+        asm("" : "=r"(infoRef) : "0"(a1));
+        (*infoRef)[0x10 / 2] = val;
+
+        val = ReadUnalignedU16(*streamRef + 4);
+        (*infoRef)[0x12 / 2] = val;
+    }
+
+    *streamRef += 6;
+}
 INCLUDE_ASM("asm/nonmatchings/m4a", StreamCmd_AdvanceStream);
 /*
  * MidiProcessEvent: dispatch a MIDI note or control event.
