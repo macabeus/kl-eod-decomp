@@ -559,7 +559,49 @@ INCLUDE_ASM("asm/nonmatchings/m4a", SoundSystemConfigure);
  * then calls FUN_0805186c for channels 1-4 with the voice table.
  * Restores SAPPY_MAGIC on exit.
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", SoundChannelResetAll);
+void SoundChannelResetAll(void) {
+    u32 a0 = 0x03007FF0;
+    u32 **infoRef;
+    u32 *info;
+    u32 magic;
+    s32 counter;
+    u8 *ptr;
+
+    asm("" : "=r"(infoRef) : "0"(a0));
+    info = *infoRef;
+    magic = info[0];
+
+    {
+        u32 a1 = SAPPY_MAGIC;
+        u32 expected;
+        asm("" : "=r"(expected) : "0"(a1));
+        if (magic != expected)
+            return;
+    }
+
+    info[0] = magic + 1;
+
+    counter = 12;
+    ptr = (u8 *)info + 0x50;
+    do {
+        *ptr = 0;
+        counter--;
+        ptr += 0x40;
+    } while (counter > 0);
+
+    ptr = (u8 *)info[0x1C / 4];
+    if (ptr != NULL) {
+        counter = 1;
+        do {
+            FUN_0805186c((u8)counter, info[0x2C / 4]);
+            *ptr = 0;
+            counter++;
+            ptr += 0x40;
+        } while (counter <= 4);
+    }
+
+    info[0] = SAPPY_MAGIC;
+}
 /*
  * m4aSoundShutdown: emergency stop — shut down all sound output.
  * Silences all channels, stops DMA, and resets hardware registers.
