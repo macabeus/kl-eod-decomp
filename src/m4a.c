@@ -210,7 +210,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", VoiceLookupAndApply);
  * InstrumentLookup: look up instrument data from ROM_INSTRUMENT_TABLE.
  * Given a program/voice number, returns a pointer to the instrument entry
  * (12-byte voice struct: type, key, samplePtr, ADSR).
- *   14 lines, calls InstrumentGetEntry (FUN_0804f73e)
+ *   14 lines, calls InstrumentGetEntry (MidiNoteDispatch)
  *   refs: ROM_INSTRUMENT_TABLE (0x081179E4)
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", InstrumentLookup);
@@ -260,7 +260,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayContinue);
 /*
  * SoundContextRef: get a reference to the current sound context.
  * Returns the active MusicPlayer context for the caller.
- *   39 lines, calls FUN_0804fb8c
+ *   39 lines, calls SoundChannelRelease
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", SoundContextRef);
 /*
@@ -300,7 +300,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", SoundEffectChain);
  * FreqTableLookup: look up pitch/frequency from ROM tables.
  * Converts MIDI note numbers to hardware frequency values using
  * ROM_FREQ_TABLE_1 (0x08117A74) and ROM_FREQ_TABLE_2 (0x08117B28).
- *   51 lines, calls FUN_0804f284
+ *   51 lines, calls FixedPointMultiply
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", FreqTableLookup);
 /*
@@ -323,13 +323,13 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayChannelReset);
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", m4aSoundInit_Impl);
 /*
- * Wrapper that calls InitSoundEngine (FUN_0804f294) to initialize
+ * Wrapper that calls InitSoundEngine (InitSoundEngine) to initialize
  * the MusicPlayer2000 sound engine.
  *   no parameters
  *   no return value
  */
 void SoundInit(void) {
-    FUN_0804f294();
+    InitSoundEngine();
 }
 /*
  * m4aSongNumStart: start playing a music track by song ID.
@@ -556,7 +556,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", SoundSystemConfigure);
 /*
  * SoundPlatformDetect: detect audio platform capabilities.
  * Checks hardware version and adjusts sound parameters accordingly.
- *   45 lines, calls PlaySoundEffect (FUN_0805186c)
+ *   45 lines, calls FUN_0805186c (FUN_0805186c)
  */
 /**
  * SoundChannelResetAll: resets all channel status bytes and processes channels.
@@ -777,7 +777,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MidiCommandEncode2);
  * Reads a command byte from the track stream and dispatches to the
  * appropriate handler via a ROM-based function pointer table.
  *   174 lines
- *   calls: DispatchSoundCommand (FUN_08051870)
+ *   calls: FUN_08051870 (FUN_08051870)
  *   refs: gSoundCmdTablePtr (0x03006454), ROM command table (0x080511F0)
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCommandDispatch);
@@ -786,7 +786,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCommandDispatch);
  * Reads a command byte, indexes into the command table at 0x08117C8C,
  * and calls the corresponding handler function.
  *   r0: sound context, r1: channel struct
- *   16 lines, calls DispatchSoundCommand (FUN_08051870)
+ *   16 lines, calls FUN_08051870 (FUN_08051870)
  */
 void FUN_08051870(u32, u32 *, u32);
 void SoundCmd_Dispatch(u32 ctx, u32 *channel)
@@ -802,7 +802,7 @@ void SoundCmd_Dispatch(u32 ctx, u32 *channel)
     }
 }
 /*
- * Dispatches a sound command through DispatchSoundCommand (FUN_08051870)
+ * Dispatches a sound command through FUN_08051870 (FUN_08051870)
  * using the global sound table pointer.
  *   r0, r1: command arguments passed through
  *   no return value
