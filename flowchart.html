@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program Flow — Klonoa: EoD Decomp</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .flowchart-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 0;
+        }
+        .flowchart-container svg {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .flowchart-intro {
+            max-width: 800px;
+            margin: 0 auto 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="site-title">Klonoa: EoD Decomp</a>
+        <ul class="nav-links">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="flowchart.html" class="active">Program Flow</a></li>
+            <li><a href="sound.html">Sound Engine</a></li>
+            <li><a href="music.html">Music Player</a></li>
+            <li><a href="gallery.html">Graphics</a></li>
+            <li><a href="graphics-engine.html">Graphics Engine</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Program Flow</h1>
+        <div class="flowchart-intro">
+            <p>
+                This diagram shows the complete execution flow of <strong>Klonoa: Empire of Dreams</strong>,
+                from the AgbMain entry point through the main game loop, scene dispatch, and transition system.
+            </p>
+            <p>
+                The game uses a <strong>callback-driven state machine</strong>: a central callback block at
+                <code>0x03003510</code> holds function pointers that define the current scene's behavior.
+                Scene transitions work by fading out over 16 frames, freeing resources, installing new
+                callback pointers, and fading back in.
+            </p>
+            <p>
+                Each frame, a VBlank interrupt fires to handle rendering (OAM DMA, BG scroll, palette updates),
+                then the main loop reads input, updates timers, and dispatches to the current scene's update function.
+                When a transition is triggered (<code>gControlBlock[0] &lt; 0</code>), the FadeOutController
+                takes over until the fade completes and the new scene is loaded.
+            </p>
+        </div>
+
+        <div class="flowchart-container">
+            <object data="flowchart.svg" type="image/svg+xml" style="width:100%;">
+                <img src="flowchart.svg" alt="Program flow diagram">
+            </object>
+        </div>
+    </div>
+
+    <footer>
+        Klonoa: Empire of Dreams Decompilation Research Project
+    </footer>
+</body>
+</html>
