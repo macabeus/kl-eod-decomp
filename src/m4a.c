@@ -52,7 +52,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", SoundReset);
  * DmaControllerInit: full DMA initialization with channel config.
  * Sets up DMA for both Direct Sound channels (FIFO A and B).
  *   125 lines, has DMA register writes
- *   calls: SoundReset (SoundReset)
+ *   calls: SoundReset
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", DmaControllerInit);
 /*
@@ -166,12 +166,12 @@ INCLUDE_ASM("asm/nonmatchings/m4a", StreamCmd_AdvanceStream);
  * MidiProcessEvent: dispatch a MIDI note or control event.
  * Processes a single event from the track bytecode stream,
  * handling note-on, note-off, and control change messages.
- *   72 lines, calls DmaControllerInit (DmaControllerInit)
+ *   72 lines, calls DmaControllerInit
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiProcessEvent);
 /*
  * MPlayMain_SetAndProcess: stores a value into gSoundInfo[0xD]
- * then calls MidiProcessEvent (MidiProcessEvent).
+ * then calls MidiProcessEvent.
  *   r0: value to store
  *   10 lines (split from former 587-line MPlayMain)
  */
@@ -203,14 +203,14 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayTrackCallback);
 INCLUDE_ASM("asm/nonmatchings/m4a", VoiceGetParams);
 /*
  * VoiceLookup: voice parameter lookup wrapper.
- *   28 lines, calls VoiceUtil (VoiceGetParams)
+ *   28 lines, calls VoiceGetParams
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", VoiceLookupAndApply);
 /*
  * InstrumentLookup: look up instrument data from ROM_INSTRUMENT_TABLE.
  * Given a program/voice number, returns a pointer to the instrument entry
  * (12-byte voice struct: type, key, samplePtr, ADSR).
- *   14 lines, calls InstrumentGetEntry (MidiNoteDispatch)
+ *   14 lines, calls MidiNoteDispatch
  *   refs: ROM_INSTRUMENT_TABLE (0x081179E4)
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", InstrumentLookup);
@@ -233,7 +233,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MidiDecodeByte);
 /*
  * MidiNoteSetup: set up a MIDI note-on event on a sound channel.
  * Configures the channel's pitch, volume, and instrument for playback.
- *   42 lines, calls InstrumentGetEntry (InstrumentGetEntry)
+ *   42 lines, calls InstrumentGetEntry
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiNoteSetup);
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiNoteWithVelocity);
@@ -274,7 +274,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayStop_Channel);
  * Silences all channels, resets playback state, and releases
  * voice allocations. Third largest function in m4a (313 lines).
  *   313 lines
- *   calls: PlaySoundWithContext_D8 (PlaySoundWithContext_D8)
+ *   calls: PlaySoundWithContext_D8
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MPlayNoteProcess);
 INCLUDE_ASM("asm/nonmatchings/m4a", MPlayChannelRelease);
@@ -293,7 +293,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", SoundEffectParamInit);
 /*
  * SoundEffectProcess: process a sound effect playback chain.
  * Handles SFX queuing, priority, and channel assignment.
- *   24 lines, calls SoundEffectUtil (SoundEffectParamInit)
+ *   24 lines, calls SoundEffectParamInit
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", SoundEffectChain);
 /*
@@ -323,7 +323,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayChannelReset);
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", m4aSoundInit_Impl);
 /*
- * Wrapper that calls InitSoundEngine (InitSoundEngine) to initialize
+ * Wrapper that calls InitSoundEngine to initialize
  * the MusicPlayer2000 sound engine.
  *   no parameters
  *   no return value
@@ -336,7 +336,7 @@ void SoundInit(void) {
  * Looks up the song header from ROM_MUSIC_TABLE (0x08118AB4) and
  * ROM_MUSIC_META_TABLE (0x08118AE4), then begins playback.
  *   r0: song ID (0-38 for BGM, 39+ for SFX)
- *   21 lines, calls LoadSoundData (MPlayLoadSongData)
+ *   21 lines, calls MPlayLoadSongData
  */
 void MPlayLoadSongData(u32, u32);
 void InitSceneState(u32 idx)
@@ -374,7 +374,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", m4aSongNumContinue);
  * Copies track headers and sets up the MusicPlayer state for
  * a new song without starting playback.
  *   41 lines
- *   calls: MPlayChannelReset (MPlayChannelReset), LoadSoundData (MPlayLoadSongData)
+ *   calls: MPlayChannelReset, MPlayLoadSongData
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", m4aSongNumLoad);
 /*
@@ -415,7 +415,7 @@ void m4aMPlayCommand(u32 idx)
 /*
  * m4aSongNumStop: stop the currently playing music track.
  * Halts playback and releases all voices for the active song.
- *   26 lines, calls MPlayChannelReset (MPlayChannelReset)
+ *   26 lines, calls MPlayChannelReset
  */
 void MPlayChannelReset(u32 *);
 void m4aSongNumStop(u32 idx)
@@ -449,7 +449,7 @@ void m4aSongNumStop(u32 idx)
  * Loops over 4 sound channels, calling MPlayChannelUpdate for each.
  * This is the main per-frame entry point for the sound engine.
  *   23 lines, refs: ROM_MUSIC_TABLE (0x08118AB4)
- *   calls: MPlayChannelUpdate (MPlayStop)
+ *   calls: MPlayStop
  */
 /**
  * StopAllMusicPlayers: stops all 4 music player instances.
@@ -457,7 +457,7 @@ void m4aSongNumStop(u32 idx)
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", StopAllMusicPlayers);
 /*
- * Wrapper that calls MPlayChannelReset (MPlayChannelReset) to stop/reset
+ * Wrapper that calls MPlayChannelReset to stop/reset
  * a single sound channel.
  *   r0: pointer to sound channel struct
  *   no return value
@@ -472,7 +472,7 @@ void StopSoundChannel(u32 r0) {
  * m4aSoundVSyncSetup: set up VBlank-synchronized sound processing.
  * Configures the VBlank interrupt to call the sound update routine
  * each frame, ensuring audio stays in sync with display refresh.
- *   23 lines, calls MPlayChannelReset (MPlayChannelReset)
+ *   23 lines, calls MPlayChannelReset
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", StopSoundEffects);
 /*
@@ -556,7 +556,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", SoundSystemConfigure);
 /*
  * SoundPlatformDetect: detect audio platform capabilities.
  * Checks hardware version and adjusts sound parameters accordingly.
- *   45 lines, calls FUN_0805186c (FUN_0805186c)
+ *   45 lines, calls FUN_0805186c
  */
 /**
  * SoundChannelResetAll: resets all channel status bytes and processes channels.
@@ -633,14 +633,14 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayOpen);
  * Reads song header from ROM, allocates channels, loads instrument
  * data, and prepares the MusicPlayer for playback.
  *   121 lines
- *   calls: SoundContextRef (SoundContextRef), SoundSystemConfigure (SoundSystemConfigure)
+ *   calls: SoundContextRef, SoundSystemConfigure
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MPlayLoadSongData);
 /*
  * MPlayChannelUpdate: update a single music player channel.
  * Processes pending notes, advances timing, and updates the
  * channel's hardware registers for the current frame.
- *   35 lines, calls SoundContextRef (SoundContextRef)
+ *   35 lines, calls SoundContextRef
  */
 /**
  * MPlayStop: stops all tracks in a music player.
@@ -676,7 +676,7 @@ void MPlayStop(u32 *player) {
  * CgbModVol: CGB channel volume modulation.
  * Applies volume envelope and modulation effects to CGB
  * channels (Square 1/2, Wave, Noise).
- *   110 lines, calls SoundContextRef (SoundContextRef)
+ *   110 lines, calls SoundContextRef
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", CgbModVol);
 /*
@@ -705,7 +705,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", CgbPanLookup);
  * Configures all 4 CGB sound channels (Square1, Square2, Wave, Noise)
  * by writing to their individual control registers. Handles duty cycle,
  * envelope, frequency, sweep, and wave pattern RAM.
- *   189 lines, calls MidiKeyToCgbFreq (MidiKeyToCgbFreq)
+ *   189 lines, calls MidiKeyToCgbFreq
  *   HW: REG_SOUND1CNT_L/H/X (0x04000060-0x04000064),
  *       REG_SOUND2CNT_L/H (0x04000068-0x0400006C),
  *       REG_SOUND3CNT_L/H/X (0x04000070-0x04000074),
@@ -763,13 +763,13 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MidiUtilConvert);
 /*
  * MidiCommandEncode1: encode MIDI command (type 1).
  * Packs MIDI event data into the internal command format.
- *   64 lines, calls MidiUtilConvert (MidiUtilConvert)
+ *   64 lines, calls MidiUtilConvert
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiCommandEncode1);
 /*
  * MidiCommandEncode2: encode MIDI command (type 2).
  * Packs MIDI controller/pitch data into the internal command format.
- *   62 lines, calls MidiUtilConvert (MidiUtilConvert)
+ *   62 lines, calls MidiUtilConvert
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiCommandEncode2);
 /*
@@ -777,7 +777,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MidiCommandEncode2);
  * Reads a command byte from the track stream and dispatches to the
  * appropriate handler via a ROM-based function pointer table.
  *   174 lines
- *   calls: FUN_08051870 (FUN_08051870)
+ *   calls: FUN_08051870
  *   refs: gSoundCmdTablePtr (0x03006454), ROM command table (0x080511F0)
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCommandDispatch);
@@ -786,7 +786,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCommandDispatch);
  * Reads a command byte, indexes into the command table at 0x08117C8C,
  * and calls the corresponding handler function.
  *   r0: sound context, r1: channel struct
- *   16 lines, calls FUN_08051870 (FUN_08051870)
+ *   16 lines, calls FUN_08051870
  */
 void FUN_08051870(u32, u32 *, u32);
 void SoundCmd_Dispatch(u32 ctx, u32 *channel)
@@ -802,7 +802,7 @@ void SoundCmd_Dispatch(u32 ctx, u32 *channel)
     }
 }
 /*
- * Dispatches a sound command through FUN_08051870 (FUN_08051870)
+ * Dispatches a sound command through FUN_08051870
  * using the global sound table pointer.
  *   r0, r1: command arguments passed through
  *   no return value
