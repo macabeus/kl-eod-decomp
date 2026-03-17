@@ -52,5 +52,17 @@ INCLUDE_ASM("asm/nonmatchings/system", LoadSpriteFrame);
  */
 INCLUDE_ASM("asm/nonmatchings/system", FreeAllDecompBuffers);
 
-/** FixedMul8: 8.8 fixed-point signed multiply (s16*s16 >> 8). */
-INCLUDE_ASM("asm/nonmatchings/system", FixedMul8);
+/**
+ * FixedMul8: 8.8 fixed-point signed multiply (s16*s16 >> 8).
+ * Rounds negative results toward zero by adding 255 before shift.
+ */
+s16 FixedMul8(s16 a, s16 b)
+{
+    s32 result = (s32)a * (s32)b;
+    register s32 shifted asm("r1");
+    shifted = result;
+    asm("" : "+r"(shifted));
+    if (result < 0)
+        shifted += 0xFF;
+    return (s16)(shifted >> 8);
+}
