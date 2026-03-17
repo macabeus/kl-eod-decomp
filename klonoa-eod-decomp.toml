@@ -548,3 +548,9 @@ FUN_0804bf7c = "ShutdownGfxSubsystem"
 FUN_0804bb3c = "AllocAndClearGfxBuffer"
 FUN_0804bb74 = "FreeGfxBuffer"
 FUN_0804bb88 = "AllocAndClearBuffer_52A4"
+
+# Sub-function entry points (mid-function labels callable via bl)
+FUN_0804f284 = "FixedPointMultiply"
+FUN_0804f294 = "InitSoundEngine"
+FUN_0804f73e = "MidiNoteDispatch"
+FUN_0804fb8c = "SoundChannelRelease"
