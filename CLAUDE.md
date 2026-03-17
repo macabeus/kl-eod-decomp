@@ -71,6 +71,10 @@ Each source file in `src/` represents a module defined in `klonoa-eod-decomp.tom
 
 - **"more symbols" means:** name ALL addressable things — functions, sub-function entry points, IWRAM globals, ROM data tables, struct fields, constants.
 
+- **Keep the terminal title updated.** Use `printf '\033]0;DESCRIPTION\007'` to show the current task in the gnome-terminal title bar.
+
+- **All policies must be public.** Every strict policy must be added to this CLAUDE.md file so that all collaborators can see and follow them. Never store policies only in Claude's memory.
+
 ## Key Configuration Files
 
 - **klonoa-eod-decomp.toml**: Module start addresses and function renames
