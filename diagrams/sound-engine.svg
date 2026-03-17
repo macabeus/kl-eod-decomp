@@ -11,7 +11,7 @@
   <!-- Init -->
   <g filter="url(#s)">
     <rect x="280" y="80" width="340" height="44" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
-    <text x="450" y="98" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">m4aSoundInit_Impl</text>
+    <text x="450" y="98" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">m4aSoundInit</text>
     <text x="450" y="114" text-anchor="middle" fill="#94a3b8" font-size="10">BitUnPack &#x2192; DirectSoundFifoSetup &#x2192; SoundHardwareInit &#x2192; MPlayOpen &#x00D7;4</text>
   </g>
   <line x1="450" y1="124" x2="450" y2="154" stroke="#64748b" marker-end="url(#a)"/>
@@ -52,13 +52,13 @@
 
   <g filter="url(#s)">
     <rect x="90" y="525" width="320" height="36" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
-    <text x="250" y="548" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">InitSceneState (matched)</text>
+    <text x="250" y="548" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">SoundInit (matched)</text>
   </g>
   <line x1="250" y1="561" x2="250" y2="578" stroke="#64748b" marker-end="url(#a)"/>
 
   <g filter="url(#s)">
     <rect x="90" y="578" width="320" height="36" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
-    <text x="250" y="601" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">MPlayLoadSongData</text>
+    <text x="250" y="601" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">m4aSongNumLoad</text>
   </g>
   <line x1="250" y1="614" x2="250" y2="631" stroke="#64748b" marker-end="url(#a)"/>
 

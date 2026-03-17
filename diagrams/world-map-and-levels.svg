@@ -107,7 +107,7 @@
   <text x="425" y="672" text-anchor="middle" fill="#94a3b8" font-size="9">Read entity table from ROM</text>
   <text x="425" y="684" text-anchor="middle" fill="#94a3b8" font-size="9">Fill entity array slots 1-98</text>
   <text x="700" y="672" text-anchor="middle" fill="#94a3b8" font-size="9">Select BGM by world/level</text>
-  <text x="700" y="684" text-anchor="middle" fill="#94a3b8" font-size="9">InitSceneState &#x2192; play</text>
+  <text x="700" y="684" text-anchor="middle" fill="#94a3b8" font-size="9">SoundInit &#x2192; play</text>
 
   <!-- ===== Save System ===== -->
   <rect x="30" y="730" width="840" height="300" rx="10" fill="none" stroke="#ec4899" stroke-width="1" stroke-dasharray="6,4"/>
