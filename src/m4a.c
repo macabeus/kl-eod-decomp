@@ -175,7 +175,16 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MidiProcessEvent);
  *   r0: value to store
  *   10 lines (split from former 587-line MPlayMain)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayMain_SetAndProcess);
+u32 MidiProcessEvent(void);
+u32 MPlayMain_SetAndProcess(u32 val)
+{
+    u32 a0 = 0x0300081C;
+    u8 *info;
+    asm("" : "=r"(info) : "0"(a0));
+    info = (u8 *)*(u32 *)info;
+    info[0x0D] = val;
+    return MidiProcessEvent();
+}
 /*
  * MPlayMain: CORE music player tick — largest function in m4a.
  * Called each frame to advance all active music tracks. Reads track bytecode,
