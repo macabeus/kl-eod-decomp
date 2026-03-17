@@ -169,7 +169,38 @@ INCLUDE_ASM("asm/nonmatchings/gfx", ClearScreenBufferB_Alt);
  * REG_WININ=0x1F23, REG_WINOUT=0x003D, clears OBJ window in DISPCNT.
  */
 INCLUDE_ASM("asm/nonmatchings/gfx", InitLevelStateDefaults);
-INCLUDE_ASM("asm/nonmatchings/gfx", SetupGfxCallbacks);
+void VBlankHandler_WithWindowScroll(void);
+void UpdateBGScrollWithWave(void);
+void ReadKeyInput(void);
+void SoundMain(void);
+void VBlankCallback_MapScreen(void);
+/**
+ * SetupGfxCallbacks: initializes VBlank/HBlank handlers and callback state
+ * for the world map screen.
+ */
+void SetupGfxCallbacks(void)
+{
+    u32 a0 = 0x030047C0;
+    u32 *vblankCbs;
+    asm("" : "=r"(vblankCbs) : "0"(a0));
+    vblankCbs[0] = (u32)VBlankHandler_WithWindowScroll;
+    vblankCbs[1] = (u32)UpdateBGScrollWithWave;
+
+    {
+        u32 a1 = 0x03003510;
+        u32 *cbState;
+        asm("" : "=r"(cbState) : "0"(a1));
+        cbState[0x28 / 4] = (u32)ReadKeyInput;
+        cbState[0x2C / 4] = (u32)SoundMain;
+        cbState[0x30 / 4] = (u32)VBlankCallback_MapScreen;
+        cbState[0x34 / 4] = 1;
+        {
+            u32 idx = *((u8 *)cbState + 0x78) - 1;
+            cbState[idx] = 0;
+        }
+        *((u8 *)cbState + 0x79) = 4;
+    }
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", InitWorldMapGfx);
 /**
  * ShutdownGfxSubsystem: tears down the graphics subsystem on scene exit.
@@ -364,7 +395,7 @@ INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBlendMode);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetScrollPosition);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGScreenSize);
 /**
- * StreamCmd_SetWindowRegs: writes REG_WININ/WINOUT from stream bytes[2-5].
+ * StreamCmd_SetWindowRegs: writes WIN0H/WIN0V from stream bytes[2-5].
  * Advances stream by 6.
  */
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetWindowRegs);
