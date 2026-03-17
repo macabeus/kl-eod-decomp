@@ -334,7 +334,33 @@ INCLUDE_ASM("asm/nonmatchings/m4a", m4aMPlayCommand);
  * Halts playback and releases all voices for the active song.
  *   26 lines, calls MPlayChannelReset (MPlayChannelReset)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", m4aSongNumStop);
+void MPlayChannelReset(u32 *);
+void m4aSongNumStop(u32 idx)
+{
+    u32 shifted = idx << 16;
+    u32 a0 = 0x08118AB4;
+    u32 a1 = 0x08118AE4;
+    register u8 *voiceBase asm("r2");
+    u8 *songTable;
+    u8 *entry;
+
+    asm("" : "+r"(shifted));
+    asm("" : "=r"(voiceBase) : "0"(a0));
+    asm("" : "=r"(songTable) : "0"(a1));
+    shifted >>= 13;
+    shifted += (u32)songTable;
+    entry = (u8 *)shifted;
+
+    {
+        u16 voiceIdx = *(u16 *)(entry + 4);
+        u32 voiceOff = (u32)voiceIdx * 12;
+        u32 *player;
+        voiceOff += (u32)voiceBase;
+        player = *(u32 **)voiceOff;
+        if (player[0] == *(u32 *)entry)
+            MPlayChannelReset(player);
+    }
+}
 /*
  * m4aSoundVSync: VBlank sound update — called every frame.
  * Loops over 4 sound channels, calling MPlayChannelUpdate for each.
