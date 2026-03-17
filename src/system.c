@@ -50,7 +50,36 @@ INCLUDE_ASM("asm/nonmatchings/system", LoadSpriteFrame);
  * Frees gDecompBufferCtrl entries [0]-[5] (offset -4 for sub-header),
  * then conditionally frees gCollisionMapPtr.
  */
-INCLUDE_ASM("asm/nonmatchings/system", FreeAllDecompBuffers);
+void thunk_FUN_0800020c(u32);
+void InitSceneState(u32);
+void FreeAllDecompBuffers(void)
+{
+    u32 a0 = 0x03004790;
+    u32 *bufs;
+    asm("" : "=r"(bufs) : "0"(a0));
+
+    thunk_FUN_0800020c(bufs[1] - 4);
+    thunk_FUN_0800020c(bufs[0] - 4);
+    thunk_FUN_0800020c(bufs[3] - 4);
+    thunk_FUN_0800020c(bufs[2] - 4);
+    thunk_FUN_0800020c(bufs[5] - 4);
+    thunk_FUN_0800020c(bufs[4] - 4);
+
+    {
+        u32 a1 = 0x03005290;
+        u32 *collisionPtr;
+        asm("" : "=r"(collisionPtr) : "0"(a1));
+        if (*collisionPtr != 0) {
+            thunk_FUN_0800020c(*collisionPtr - 4);
+            *collisionPtr = 0;
+        }
+    }
+
+    InitSceneState(0x8D);
+    InitSceneState(0x8E);
+    InitSceneState(0x8F);
+    InitSceneState(0x90);
+}
 
 /**
  * FixedMul8: 8.8 fixed-point signed multiply (s16*s16 >> 8).
