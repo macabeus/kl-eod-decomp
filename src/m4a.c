@@ -328,7 +328,35 @@ INCLUDE_ASM("asm/nonmatchings/m4a", m4aSongNumLoad);
  *   r0: command ID
  *   26 lines, refs: ROM_MUSIC_TABLE, ROM_MUSIC_META_TABLE
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", m4aMPlayCommand);
+/**
+ * m4aMPlayCommand: stops the player if it's playing the given song.
+ */
+void m4aMPlayCommand(u32 idx)
+{
+    u32 shifted = idx << 16;
+    u32 a0 = 0x08118AB4;
+    u32 a1 = 0x08118AE4;
+    register u8 *voiceBase asm("r2");
+    u8 *songTable;
+    u8 *entry;
+
+    asm("" : "+r"(shifted));
+    asm("" : "=r"(voiceBase) : "0"(a0));
+    asm("" : "=r"(songTable) : "0"(a1));
+    shifted >>= 13;
+    shifted += (u32)songTable;
+    entry = (u8 *)shifted;
+
+    {
+        u16 voiceIdx = *(u16 *)(entry + 4);
+        u32 voiceOff = (u32)voiceIdx * 12;
+        u32 *player;
+        voiceOff += (u32)voiceBase;
+        player = *(u32 **)voiceOff;
+        if (player[0] == *(u32 *)entry)
+            MPlayStop(player);
+    }
+}
 /*
  * m4aSongNumStop: stop the currently playing music track.
  * Halts playback and releases all voices for the active song.
