@@ -11,7 +11,8 @@
             margin: 0 auto;
             padding: 1rem 0;
         }
-        .flowchart-container svg {
+        .flowchart-container object,
+        .flowchart-container img {
             width: 100%;
             height: auto;
             border-radius: 8px;
@@ -19,6 +20,18 @@
         .flowchart-intro {
             max-width: 800px;
             margin: 0 auto 1.5rem;
+        }
+        .diagram-section {
+            margin: 2.5rem 0;
+        }
+        .diagram-section h2 {
+            border-bottom: 1px solid #334155;
+            padding-bottom: 0.5rem;
+        }
+        .diagram-desc {
+            max-width: 800px;
+            margin-bottom: 1rem;
+            color: #94a3b8;
         }
     </style>
 </head>
@@ -39,27 +52,84 @@
         <h1>Program Flow</h1>
         <div class="flowchart-intro">
             <p>
-                This diagram shows the complete execution flow of <strong>Klonoa: Empire of Dreams</strong>,
-                from the AgbMain entry point through the main game loop, scene dispatch, and transition system.
-            </p>
-            <p>
-                The game uses a <strong>callback-driven state machine</strong>: a central callback block at
-                <code>0x03003510</code> holds function pointers that define the current scene's behavior.
-                Scene transitions work by fading out over 16 frames, freeing resources, installing new
-                callback pointers, and fading back in.
-            </p>
-            <p>
-                Each frame, a VBlank interrupt fires to handle rendering (OAM DMA, BG scroll, palette updates),
-                then the main loop reads input, updates timers, and dispatches to the current scene's update function.
-                When a transition is triggered (<code>gControlBlock[0] &lt; 0</code>), the FadeOutController
-                takes over until the fade completes and the new scene is loaded.
+                These diagrams document the complete architecture of <strong>Klonoa: Empire of Dreams</strong>,
+                derived from reverse-engineering all 463 functions across 10 modules.
+                The game uses a <strong>callback-driven state machine</strong> where a central callback block
+                at <code>0x03003510</code> holds function pointers defining the current scene's behavior.
             </p>
         </div>
 
-        <div class="flowchart-container">
-            <object data="flowchart.svg" type="image/svg+xml" style="width:100%;">
-                <img src="flowchart.svg" alt="Program flow diagram">
-            </object>
+        <!-- 1. Main Program Flow -->
+        <div class="diagram-section">
+            <h2>1. Main Program Flow</h2>
+            <p class="diagram-desc">
+                Boot sequence (AgbMain), main game loop, scene dispatch, and the transition state machine.
+                Each frame: VBlank interrupt fires, input is read, timers update, and the current scene's
+                update function runs. Transitions fade out over 16 frames, free resources, install new
+                callbacks, and fade back in.
+            </p>
+            <div class="flowchart-container">
+                <object data="flowchart.svg" type="image/svg+xml"><img src="flowchart.svg" alt="Main program flow"></object>
+            </div>
+        </div>
+
+        <!-- 2. Entity System -->
+        <div class="diagram-section">
+            <h2>2. Entity System</h2>
+            <p class="diagram-desc">
+                Per-frame entity update pipeline (code_1 module). EntityUpdateDispatch iterates 99 entity
+                slots (28 bytes each). Slot 0 is the player (with input handling and physics); slots 1-98
+                are NPCs, enemies, projectiles, and pickups dispatched through a behavior function table.
+                Common pipeline: gravity, tile movement, scroll bounds, sprite updates, then state-specific
+                handlers (carried, thrown, hit, death).
+            </p>
+            <div class="flowchart-container">
+                <object data="diagrams/entity-system.svg" type="image/svg+xml"><img src="diagrams/entity-system.svg" alt="Entity system"></object>
+            </div>
+        </div>
+
+        <!-- 3. Graphics Pipeline -->
+        <div class="diagram-section">
+            <h2>3. Graphics Pipeline</h2>
+            <p class="diagram-desc">
+                Three parallel systems: <strong>VBlank rendering</strong> (OAM DMA, BG scroll, palette,
+                level-specific tile DMA, HUD, dialog); <strong>scene setup</strong> (decompress tiles/tilemaps/palettes
+                from ROM, DMA to VRAM charblocks); and the <strong>graphics stream command system</strong>
+                (bytecode interpreter with 15+ opcodes for dynamic graphics control during cutscenes
+                and transitions).
+            </p>
+            <div class="flowchart-container">
+                <object data="diagrams/graphics-pipeline.svg" type="image/svg+xml"><img src="diagrams/graphics-pipeline.svg" alt="Graphics pipeline"></object>
+            </div>
+        </div>
+
+        <!-- 4. Sound Engine -->
+        <div class="diagram-section">
+            <h2>4. Sound Engine</h2>
+            <p class="diagram-desc">
+                Nintendo's MusicPlayer2000 ("Sappy" / m4a): MIDI-like bytecode tracks mixed to PCM
+                and DMA'd to the GBA's Direct Sound FIFOs. 4 music players, 39 BGM songs, 126 SFX,
+                3 voice/instrument tables, ~300KB of 8-bit PCM samples. Per-frame: decode bytecode
+                events per track, mix all channels, DMA to audio FIFO.
+            </p>
+            <div class="flowchart-container">
+                <object data="diagrams/sound-engine.svg" type="image/svg+xml"><img src="diagrams/sound-engine.svg" alt="Sound engine"></object>
+            </div>
+        </div>
+
+        <!-- 5. World Map & Level Loading -->
+        <div class="diagram-section">
+            <h2>5. World Map, Level Loading, and Save System</h2>
+            <p class="diagram-desc">
+                World map scene with 8 worlds (Breezegale, Jugpot, Forlock, Volk, Ishras Viel,
+                Timber Tracks, The Dark, EX Levels), each with 2 visions. Level loading pipeline:
+                transition fade &rarr; free buffers &rarr; load world/vision-specific data &rarr;
+                decompress graphics &rarr; spawn entities &rarr; start music. Save system uses
+                EEPROM with DMA-based sector write/verify/retry.
+            </p>
+            <div class="flowchart-container">
+                <object data="diagrams/world-map-and-levels.svg" type="image/svg+xml"><img src="diagrams/world-map-and-levels.svg" alt="World map and level loading"></object>
+            </div>
         </div>
     </div>
 

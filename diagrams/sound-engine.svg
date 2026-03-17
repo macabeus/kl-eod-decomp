@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" font-family="'Segoe UI',system-ui,sans-serif" font-size="13">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#64748b"/></marker>
+    <filter id="s"><feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.12"/></filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e293b"/></linearGradient>
+  </defs>
+  <rect width="900" height="900" fill="url(#bg)"/>
+  <text x="450" y="36" text-anchor="middle" fill="#f8fafc" font-size="20" font-weight="700">Sound Engine (m4a / MusicPlayer2000)</text>
+  <text x="450" y="56" text-anchor="middle" fill="#94a3b8" font-size="11">Nintendo's "Sappy" engine: MIDI-like bytecode &#x2192; Direct Sound DMA</text>
+
+  <!-- Init -->
+  <g filter="url(#s)">
+    <rect x="280" y="80" width="340" height="44" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="450" y="98" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">m4aSoundInit_Impl</text>
+    <text x="450" y="114" text-anchor="middle" fill="#94a3b8" font-size="10">BitUnPack &#x2192; DirectSoundFifoSetup &#x2192; SoundHardwareInit &#x2192; MPlayOpen &#x00D7;4</text>
+  </g>
+  <line x1="450" y1="124" x2="450" y2="154" stroke="#64748b" marker-end="url(#a)"/>
+
+  <!-- Per-frame update -->
+  <rect x="60" y="154" width="780" height="310" rx="10" fill="none" stroke="#ec4899" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="80" y="174" fill="#ec4899" font-size="12" font-weight="700">PER-FRAME (called from VBlank)</text>
+
+  <g filter="url(#s)">
+    <rect x="300" y="185" width="300" height="36" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1.5"/>
+    <text x="450" y="208" text-anchor="middle" fill="#f9a8d4" font-size="12" font-weight="700">SoundMain</text>
+  </g>
+  <line x1="450" y1="221" x2="450" y2="245" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="280" y="245" width="340" height="44" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="450" y="263" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">MPlayMain (per music player &#x00D7;4)</text>
+    <text x="450" y="279" text-anchor="middle" fill="#94a3b8" font-size="9">Process all active tracks for this player</text>
+  </g>
+  <line x1="450" y1="289" x2="450" y2="310" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="280" y="310" width="340" height="44" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="450" y="328" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">MidiProcessEvent (per track)</text>
+    <text x="450" y="344" text-anchor="middle" fill="#94a3b8" font-size="9">Decode m4a bytecode: notes, rests, tempo, instrument changes</text>
+  </g>
+  <line x1="450" y1="354" x2="450" y2="375" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="280" y="375" width="340" height="44" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="450" y="393" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">SoundMixerMain</text>
+    <text x="450" y="409" text-anchor="middle" fill="#94a3b8" font-size="9">Mix all channels &#x2192; PCM buffer &#x2192; DMA to FIFO A/B</text>
+  </g>
+
+  <!-- Song playback -->
+  <rect x="60" y="490" width="380" height="200" rx="10" fill="none" stroke="#22c55e" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="80" y="510" fill="#22c55e" font-size="12" font-weight="700">SONG PLAYBACK</text>
+
+  <g filter="url(#s)">
+    <rect x="90" y="525" width="320" height="36" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="250" y="548" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">InitSceneState (matched)</text>
+  </g>
+  <line x1="250" y1="561" x2="250" y2="578" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="90" y="578" width="320" height="36" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="250" y="601" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">MPlayLoadSongData</text>
+  </g>
+  <line x1="250" y1="614" x2="250" y2="631" stroke="#64748b" marker-end="url(#a)"/>
+
+  <text x="250" y="650" text-anchor="middle" fill="#94a3b8" font-size="10">Song table @ 0x08118AE4 (165 entries &#x00D7; 8 bytes)</text>
+  <text x="250" y="666" text-anchor="middle" fill="#94a3b8" font-size="10">Voice table @ 0x08118AB4 (4 players &#x00D7; 12 bytes)</text>
+
+  <!-- Song control -->
+  <rect x="460" y="490" width="380" height="200" rx="10" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="480" y="510" fill="#f59e0b" font-size="12" font-weight="700">PLAYBACK CONTROL</text>
+
+  <g filter="url(#s)">
+    <rect x="490" y="525" width="320" height="30" rx="4" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="650" y="544" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="600">MPlayStop (matched) &#x2014; halt player</text>
+  </g>
+  <g filter="url(#s)">
+    <rect x="490" y="563" width="320" height="30" rx="4" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="650" y="582" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="600">m4aSongNumStop (matched) &#x2014; stop by song ID</text>
+  </g>
+  <g filter="url(#s)">
+    <rect x="490" y="601" width="320" height="30" rx="4" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="650" y="620" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="600">m4aMPlayCommand (matched) &#x2014; stop matching</text>
+  </g>
+  <g filter="url(#s)">
+    <rect x="490" y="639" width="320" height="30" rx="4" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="650" y="658" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="600">m4aSongNumContinue &#x2014; resume / queue</text>
+  </g>
+
+  <!-- SFX -->
+  <rect x="60" y="710" width="780" height="80" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="450" y="734" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Sound Effect System</text>
+  <text x="250" y="758" text-anchor="middle" fill="#94a3b8" font-size="11">SoundEffectTrigger &#x2192; SoundEffectParamInit &#x2192; SoundEffectChain</text>
+  <text x="650" y="758" text-anchor="middle" fill="#94a3b8" font-size="11">CGB channels 1-4 for retro-style SFX</text>
+  <text x="450" y="778" text-anchor="middle" fill="#64748b" font-size="10">39 BGM songs + 126 SFX &#x2022; 3 voice tables &#x2022; ~300KB 8-bit PCM samples</text>
+
+  <text x="450" y="840" text-anchor="middle" fill="#475569" font-size="10">DMA Timer 1/2 drives FIFO A/B at configurable sample rate &#x2022; 4 music players &#x2022; per-track volume/pan/pitch bend</text>
+  <text x="450" y="880" text-anchor="middle" fill="#475569" font-size="10">m4a bytecode: Nxx (note), Wxx (wait), FINE (end), GOTO (loop), PATT/PEND (subroutine), VOL, PAN, BEND, TEMPO, VOICE</text>
+</svg>

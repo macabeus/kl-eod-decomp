@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1050" font-family="'Segoe UI',system-ui,sans-serif" font-size="13">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#64748b"/></marker>
+    <filter id="s"><feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.12"/></filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e293b"/></linearGradient>
+  </defs>
+  <rect width="900" height="1050" fill="url(#bg)"/>
+  <text x="450" y="36" text-anchor="middle" fill="#f8fafc" font-size="20" font-weight="700">World Map, Level Loading, and Save System</text>
+  <text x="450" y="56" text-anchor="middle" fill="#94a3b8" font-size="11">code_3 module: world map navigation, level pipeline, EEPROM persistence</text>
+
+  <!-- World Map Scene -->
+  <rect x="30" y="75" width="840" height="310" rx="10" fill="none" stroke="#22c55e" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="50" y="95" fill="#22c55e" font-size="13" font-weight="700">WORLD MAP SCENE</text>
+
+  <g filter="url(#s)">
+    <rect x="310" y="108" width="280" height="40" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="450" y="126" text-anchor="middle" fill="#86efac" font-size="12" font-weight="700">UpdateWorldMapScene</text>
+    <text x="450" y="140" text-anchor="middle" fill="#94a3b8" font-size="9">Per-frame world map update (gfx.c)</text>
+  </g>
+  <line x1="450" y1="148" x2="450" y2="170" stroke="#64748b" marker-end="url(#a)"/>
+
+  <!-- World map sub-functions -->
+  <g filter="url(#s)">
+    <rect x="60" y="170" width="200" height="50" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="160" y="190" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">UpdateWorldMapNodeAnim</text>
+    <text x="160" y="206" text-anchor="middle" fill="#94a3b8" font-size="9">Animate map node icons</text>
+  </g>
+  <g filter="url(#s)">
+    <rect x="280" y="170" width="200" height="50" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="380" y="190" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">UpdateWorldMapNodeState</text>
+    <text x="380" y="206" text-anchor="middle" fill="#94a3b8" font-size="9">Track unlock / completion</text>
+  </g>
+  <g filter="url(#s)">
+    <rect x="500" y="170" width="200" height="50" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="600" y="190" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">UpdateVisionStarIcons</text>
+    <text x="600" y="206" text-anchor="middle" fill="#94a3b8" font-size="9">Show gem/star status</text>
+  </g>
+  <g filter="url(#s)">
+    <rect x="720" y="170" width="130" height="50" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="785" y="190" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">SetWorldMap</text>
+    <text x="785" y="206" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">TilePalette</text>
+  </g>
+
+  <!-- Input -> Level select -->
+  <line x1="450" y1="220" x2="450" y2="248" stroke="#64748b" marker-end="url(#a)"/>
+  <polygon points="450,248 550,280 450,312 350,280" fill="#0f172a" stroke="#f59e0b" stroke-width="1"/>
+  <text x="450" y="276" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="600">Player selects</text>
+  <text x="450" y="290" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="600">a level?</text>
+
+  <line x1="550" y1="280" x2="680" y2="280" stroke="#64748b"/>
+  <text x="620" y="273" fill="#94a3b8" font-size="10">No &#x2192; continue</text>
+  <line x1="450" y1="312" x2="450" y2="340" stroke="#f59e0b"/>
+  <text x="460" y="332" fill="#fde68a" font-size="10">Yes</text>
+
+  <!-- World structure -->
+  <rect x="60" y="340" width="250" height="35" rx="4" fill="#1e293b" stroke="#334155"/>
+  <text x="185" y="362" text-anchor="middle" fill="#94a3b8" font-size="10">8 worlds &#x00D7; 2 visions each + EX levels</text>
+
+  <rect x="330" y="340" width="250" height="35" rx="4" fill="#1e293b" stroke="#334155"/>
+  <text x="455" y="362" text-anchor="middle" fill="#94a3b8" font-size="10">FindNextUnlockedVision</text>
+
+  <rect x="600" y="340" width="250" height="35" rx="4" fill="#1e293b" stroke="#334155"/>
+  <text x="725" y="362" text-anchor="middle" fill="#94a3b8" font-size="10">RollRandomLevelVariant</text>
+
+  <!-- ===== Level Loading Pipeline ===== -->
+  <line x1="450" y1="375" x2="450" y2="415" stroke="#f59e0b" marker-end="url(#a)"/>
+
+  <rect x="30" y="415" width="840" height="290" rx="10" fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="50" y="435" fill="#3b82f6" font-size="13" font-weight="700">LEVEL LOADING PIPELINE</text>
+
+  <g filter="url(#s)">
+    <rect x="280" y="448" width="340" height="40" rx="6" fill="#451a03" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="450" y="466" text-anchor="middle" fill="#fde68a" font-size="12" font-weight="700">TransitionGameplayInit</text>
+    <text x="450" y="480" text-anchor="middle" fill="#94a3b8" font-size="9">Fade out &#x2192; free buffers &#x2192; begin level load</text>
+  </g>
+  <line x1="450" y1="488" x2="450" y2="508" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="280" y="508" width="340" height="36" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="450" y="531" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">LoadLevel_World{1-9}_Vision{1-2}</text>
+  </g>
+  <text x="680" y="531" fill="#64748b" font-size="9">18 functions, one per world/vision</text>
+  <line x1="450" y1="544" x2="450" y2="564" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="280" y="564" width="340" height="36" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="450" y="587" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">InitLevelFromROMTable (engine)</text>
+  </g>
+  <line x1="450" y1="600" x2="450" y2="620" stroke="#64748b" marker-end="url(#a)"/>
+
+  <!-- Parallel init steps -->
+  <g filter="url(#s)">
+    <rect x="60" y="620" width="230" height="36" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="175" y="643" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="600">InitLevelBG + SetupSceneGfx</text>
+  </g>
+  <g filter="url(#s)">
+    <rect x="310" y="620" width="230" height="36" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="425" y="643" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="600">SpawnLevelEntities</text>
+  </g>
+  <g filter="url(#s)">
+    <rect x="560" y="620" width="280" height="36" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="700" y="643" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="600">TransitionInitLevelMusic</text>
+  </g>
+
+  <text x="175" y="672" text-anchor="middle" fill="#94a3b8" font-size="9">Decompress tiles/tilemaps/palette</text>
+  <text x="175" y="684" text-anchor="middle" fill="#94a3b8" font-size="9">DMA to VRAM charblocks</text>
+  <text x="425" y="672" text-anchor="middle" fill="#94a3b8" font-size="9">Read entity table from ROM</text>
+  <text x="425" y="684" text-anchor="middle" fill="#94a3b8" font-size="9">Fill entity array slots 1-98</text>
+  <text x="700" y="672" text-anchor="middle" fill="#94a3b8" font-size="9">Select BGM by world/level</text>
+  <text x="700" y="684" text-anchor="middle" fill="#94a3b8" font-size="9">InitSceneState &#x2192; play</text>
+
+  <!-- ===== Save System ===== -->
+  <rect x="30" y="730" width="840" height="300" rx="10" fill="none" stroke="#ec4899" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="50" y="750" fill="#ec4899" font-size="13" font-weight="700">SAVE / LOAD SYSTEM (EEPROM, util module)</text>
+
+  <!-- Save flow -->
+  <g filter="url(#s)">
+    <rect x="60" y="770" width="380" height="36" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="793" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">SavePlayerProgress (code_3)</text>
+  </g>
+  <line x1="250" y1="806" x2="250" y2="826" stroke="#64748b" marker-end="url(#a)"/>
+  <g filter="url(#s)">
+    <rect x="60" y="826" width="380" height="50" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="846" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">SaveGameWithVerify (code_3)</text>
+    <text x="250" y="864" text-anchor="middle" fill="#94a3b8" font-size="9">Serialize game state &#x2192; call SaveGameRetry</text>
+  </g>
+  <line x1="250" y1="876" x2="250" y2="896" stroke="#64748b" marker-end="url(#a)"/>
+  <g filter="url(#s)">
+    <rect x="60" y="896" width="380" height="50" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="916" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">SaveGameRetry (util)</text>
+    <text x="250" y="932" text-anchor="middle" fill="#94a3b8" font-size="9">EepromWriteSector &#x2192; EepromVerifySector (retry up to 3&#x00D7;)</text>
+  </g>
+
+  <!-- Load flow -->
+  <g filter="url(#s)">
+    <rect x="480" y="770" width="380" height="36" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="670" y="793" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">LoadGameFromSRAM (code_3)</text>
+  </g>
+  <line x1="670" y1="806" x2="670" y2="826" stroke="#64748b" marker-end="url(#a)"/>
+  <g filter="url(#s)">
+    <rect x="480" y="826" width="380" height="36" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="670" y="849" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">EepromReadSector (util)</text>
+  </g>
+  <line x1="670" y1="862" x2="670" y2="882" stroke="#64748b" marker-end="url(#a)"/>
+  <g filter="url(#s)">
+    <rect x="480" y="882" width="380" height="50" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="670" y="902" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">Deserialize &#x2192; gControlBlock</text>
+    <text x="670" y="918" text-anchor="middle" fill="#94a3b8" font-size="9">Restore world/vision progress, gem counts, unlocked levels</text>
+  </g>
+
+  <rect x="100" y="960" width="700" height="40" rx="6" fill="#1e293b" stroke="#334155"/>
+  <text x="450" y="980" text-anchor="middle" fill="#94a3b8" font-size="11">EEPROM: 512-byte sectors &#x2022; DMA timer-based transfer &#x2022; EepromBeginTransfer / EepromEndTransfer / EepromDmaTransfer</text>
+  <text x="450" y="996" text-anchor="middle" fill="#64748b" font-size="10">Triggered on: level complete, return to world map, manual save screen</text>
+
+  <text x="450" y="1040" text-anchor="middle" fill="#475569" font-size="10">Breezegale &#x2022; Jugpot &#x2022; Forlock &#x2022; Volk &#x2022; Ishras Viel &#x2022; Timber Tracks &#x2022; The Dark &#x2022; EX Levels + World Map</text>
+</svg>

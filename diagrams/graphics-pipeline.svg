@@ -1,0 +1,227 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1500" font-family="'Segoe UI',system-ui,sans-serif" font-size="13">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#64748b"/></marker>
+    <filter id="s"><feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.12"/></filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e293b"/></linearGradient>
+  </defs>
+  <rect width="1000" height="1500" fill="url(#bg)"/>
+  <text x="500" y="36" text-anchor="middle" fill="#f8fafc" font-size="20" font-weight="700">Graphics Pipeline</text>
+  <text x="500" y="56" text-anchor="middle" fill="#94a3b8" font-size="11">Per-frame rendering: VBlank DMA, BG layers, OAM sprites, stream commands</text>
+
+  <!-- ===== LEFT: VBlank Pipeline ===== -->
+  <rect x="30" y="80" width="440" height="680" rx="10" fill="none" stroke="#ec4899" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="50" y="100" fill="#ec4899" font-size="13" font-weight="700">VBLANK INTERRUPT (every frame)</text>
+
+  <g filter="url(#s)">
+    <rect x="60" y="115" width="380" height="40" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1.5"/>
+    <text x="250" y="133" text-anchor="middle" fill="#f9a8d4" font-size="12" font-weight="700">VBlankCallback (scene-specific)</text>
+    <text x="250" y="147" text-anchor="middle" fill="#64748b" font-size="9">_Gameplay / _MapScreen / _Dialog / _Cutscene / _TitleScreen / _Credits</text>
+  </g>
+  <line x1="250" y1="155" x2="250" y2="175" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="80" y="175" width="340" height="36" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="198" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">OAM DMA: shadow buffer &#x2192; 0x07000000</text>
+  </g>
+  <line x1="250" y1="211" x2="250" y2="228" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="80" y="228" width="340" height="36" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="251" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">BG Scroll: REG_BG0HOFS..REG_BG3VOFS</text>
+  </g>
+  <line x1="250" y1="264" x2="250" y2="281" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="80" y="281" width="340" height="36" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="304" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">Palette DMA: palette buffer &#x2192; 0x05000000</text>
+  </g>
+  <line x1="250" y1="317" x2="250" y2="334" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="80" y="334" width="340" height="50" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="354" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">Level-specific tile DMA</text>
+    <text x="250" y="372" text-anchor="middle" fill="#94a3b8" font-size="9">VBlankDMA_Level1..27 &#x2022; animated tiles &#x2022; scrolling strips</text>
+  </g>
+  <line x1="250" y1="384" x2="250" y2="401" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="80" y="401" width="340" height="36" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="424" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">AnimatePaletteEffects</text>
+  </g>
+  <line x1="250" y1="437" x2="250" y2="454" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="80" y="454" width="340" height="50" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="474" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">Window / Blend / Mosaic</text>
+    <text x="250" y="492" text-anchor="middle" fill="#94a3b8" font-size="9">REG_WININ/OUT &#x2022; REG_BLDCNT/BLDALPHA/BLDY &#x2022; REG_MOSAIC</text>
+  </g>
+  <line x1="250" y1="504" x2="250" y2="521" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="80" y="521" width="340" height="36" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="544" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">HUD Rendering (RenderHUDTop/Bottom)</text>
+  </g>
+  <line x1="250" y1="557" x2="250" y2="574" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="80" y="574" width="340" height="50" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+    <text x="250" y="594" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="600">Dialog / Text (if active)</text>
+    <text x="250" y="612" text-anchor="middle" fill="#94a3b8" font-size="9">RenderDialogBox &#x2022; RenderDialogSprites &#x2022; UpdateTextScroll</text>
+  </g>
+
+  <text x="250" y="660" text-anchor="middle" fill="#94a3b8" font-size="10" font-style="italic">Sound update: SoundMain (m4a mixer)</text>
+  <text x="250" y="676" text-anchor="middle" fill="#94a3b8" font-size="10" font-style="italic">Then return to main loop</text>
+
+  <!-- ===== RIGHT: Scene Setup Pipeline ===== -->
+  <rect x="510" y="80" width="460" height="680" rx="10" fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="530" y="100" fill="#3b82f6" font-size="13" font-weight="700">SCENE SETUP (on transition)</text>
+
+  <g filter="url(#s)">
+    <rect x="540" y="115" width="400" height="40" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="740" y="133" text-anchor="middle" fill="#93c5fd" font-size="12" font-weight="700">SetupSceneGfx / InitSceneGfxByType</text>
+    <text x="740" y="147" text-anchor="middle" fill="#64748b" font-size="9">Determine scene type &#x2192; select graphics config</text>
+  </g>
+  <line x1="740" y1="155" x2="740" y2="175" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="560" y="175" width="360" height="50" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="740" y="195" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">InitLevelBG / InitVideoAndBG</text>
+    <text x="740" y="211" text-anchor="middle" fill="#94a3b8" font-size="9">REG_DISPCNT mode &#x2022; BG control registers &#x2022; charblock assignments</text>
+  </g>
+  <line x1="740" y1="225" x2="740" y2="245" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="560" y="245" width="360" height="50" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="740" y="265" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">LoadBGTileData (per layer)</text>
+    <text x="740" y="281" text-anchor="middle" fill="#94a3b8" font-size="9">ROM table &#x2192; Decompress &#x2192; DMA to charblock VRAM</text>
+  </g>
+  <line x1="740" y1="295" x2="740" y2="315" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="560" y="315" width="360" height="50" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="740" y="335" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">LoadBGTilemapData (per layer)</text>
+    <text x="740" y="351" text-anchor="middle" fill="#94a3b8" font-size="9">ROM table &#x2192; Decompress &#x2192; DMA to screenbase VRAM</text>
+  </g>
+  <line x1="740" y1="365" x2="740" y2="385" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="560" y="385" width="360" height="50" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="740" y="405" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">FinalizeLevelLayerSetup</text>
+    <text x="740" y="421" text-anchor="middle" fill="#94a3b8" font-size="9">Palette table &#x2192; Decompress &#x2192; DMA to 0x05000000</text>
+  </g>
+  <line x1="740" y1="435" x2="740" y2="455" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="560" y="455" width="360" height="40" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="740" y="475" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">LoadAndDecompressStream</text>
+    <text x="740" y="487" text-anchor="middle" fill="#94a3b8" font-size="9">Alloc + decompress graphics stream bytecode into gStreamPtr</text>
+  </g>
+  <line x1="740" y1="495" x2="740" y2="515" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="560" y="515" width="360" height="40" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="740" y="535" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">SetupGfxCallbacks</text>
+    <text x="740" y="547" text-anchor="middle" fill="#94a3b8" font-size="9">Install scene-specific VBlank + update + transition callbacks</text>
+  </g>
+
+  <!-- VRAM Layout -->
+  <rect x="540" y="580" width="400" height="170" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="740" y="600" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="700">GBA VRAM Layout (96 KB)</text>
+  <text x="560" y="622" fill="#93c5fd" font-size="10" font-family="monospace">0x06000000</text><text x="680" y="622" fill="#94a3b8" font-size="10">Charblock 0 (BG0 tiles, 16KB)</text>
+  <text x="560" y="640" fill="#93c5fd" font-size="10" font-family="monospace">0x06004000</text><text x="680" y="640" fill="#94a3b8" font-size="10">Charblock 1 (BG1 tiles, 16KB)</text>
+  <text x="560" y="658" fill="#93c5fd" font-size="10" font-family="monospace">0x06008000</text><text x="680" y="658" fill="#94a3b8" font-size="10">Charblock 2 (BG2 tiles, 16KB)</text>
+  <text x="560" y="676" fill="#93c5fd" font-size="10" font-family="monospace">0x0600C000</text><text x="680" y="676" fill="#94a3b8" font-size="10">Charblock 3 (screenbases, 16KB)</text>
+  <text x="560" y="694" fill="#93c5fd" font-size="10" font-family="monospace">0x06010000</text><text x="680" y="694" fill="#94a3b8" font-size="10">OBJ tiles (32KB)</text>
+  <text x="560" y="716" fill="#93c5fd" font-size="10" font-family="monospace">0x05000000</text><text x="680" y="716" fill="#94a3b8" font-size="10">BG palette (512B) + OBJ palette (512B)</text>
+  <text x="560" y="734" fill="#93c5fd" font-size="10" font-family="monospace">0x07000000</text><text x="680" y="734" fill="#94a3b8" font-size="10">OAM (128 entries &#x00D7; 8 bytes)</text>
+
+  <!-- ===== BOTTOM: Graphics Stream System ===== -->
+  <rect x="30" y="790" width="940" height="360" rx="10" fill="none" stroke="#22c55e" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="50" y="810" fill="#22c55e" font-size="13" font-weight="700">GRAPHICS STREAM COMMAND SYSTEM (gfx module)</text>
+
+  <g filter="url(#s)">
+    <rect x="340" y="825" width="320" height="44" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="500" y="843" text-anchor="middle" fill="#86efac" font-size="12" font-weight="700">LoadGfxStreamEntry</text>
+    <text x="500" y="859" text-anchor="middle" fill="#94a3b8" font-size="10">Read opcode from gStreamPtr, dispatch to handler</text>
+  </g>
+  <line x1="500" y1="869" x2="500" y2="895" stroke="#64748b" marker-end="url(#a)"/>
+
+  <!-- Stream command grid -->
+  <rect x="60" y="895" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="147" y="917" text-anchor="middle" fill="#86efac" font-size="10">DmaSpriteData</text>
+
+  <rect x="245" y="895" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="332" y="917" text-anchor="middle" fill="#86efac" font-size="10">ConfigureSprite</text>
+
+  <rect x="430" y="895" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="517" y="917" text-anchor="middle" fill="#86efac" font-size="10">SetBGPriority</text>
+
+  <rect x="615" y="895" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="702" y="917" text-anchor="middle" fill="#86efac" font-size="10">SetBGScroll</text>
+
+  <rect x="800" y="895" width="150" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="875" y="917" text-anchor="middle" fill="#86efac" font-size="10">FillBGTilemap</text>
+
+  <rect x="60" y="941" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="147" y="963" text-anchor="middle" fill="#86efac" font-size="10">SetBlendMode</text>
+
+  <rect x="245" y="941" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="332" y="963" text-anchor="middle" fill="#86efac" font-size="10">SetWindowRegs</text>
+
+  <rect x="430" y="941" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="517" y="963" text-anchor="middle" fill="#86efac" font-size="10">SetMusicParams</text>
+
+  <rect x="615" y="941" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="702" y="963" text-anchor="middle" fill="#86efac" font-size="10">ToggleDisplayFlag</text>
+
+  <rect x="800" y="941" width="150" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="875" y="963" text-anchor="middle" fill="#86efac" font-size="10">StopSound</text>
+
+  <rect x="60" y="987" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="147" y="1009" text-anchor="middle" fill="#86efac" font-size="10">InitStarfield</text>
+
+  <rect x="245" y="987" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="332" y="1009" text-anchor="middle" fill="#86efac" font-size="10">SetEntityFlags</text>
+
+  <rect x="430" y="987" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="517" y="1009" text-anchor="middle" fill="#86efac" font-size="10">SetEntityTransform</text>
+
+  <rect x="615" y="987" width="175" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="702" y="1009" text-anchor="middle" fill="#86efac" font-size="10">EnableScrollMode</text>
+
+  <rect x="800" y="987" width="150" height="36" rx="4" fill="#14532d" stroke="#22c55e" stroke-width="0.5"/>
+  <text x="875" y="1009" text-anchor="middle" fill="#86efac" font-size="10">RunScript</text>
+
+  <text x="500" y="1055" text-anchor="middle" fill="#94a3b8" font-size="10">Each command reads parameters from gStreamPtr (0x03004D84), advances pointer, modifies HW registers or game state</text>
+
+  <!-- OAM Sprite Pipeline -->
+  <rect x="30" y="1090" width="460" height="34" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+  <text x="260" y="1112" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">SetupOAMSprite: entity data &#x2192; OAM attr0/attr1/attr2</text>
+
+  <rect x="510" y="1090" width="460" height="34" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+  <text x="740" y="1112" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">TransformAllEntitiesToScreen: world &#x2192; screen coords</text>
+
+  <!-- Camera -->
+  <rect x="30" y="1160" width="940" height="100" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="500" y="1184" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Camera / Scroll System (engine module)</text>
+  <text x="170" y="1210" text-anchor="middle" fill="#93c5fd" font-size="11">UpdateCameraScroll</text>
+  <text x="170" y="1226" text-anchor="middle" fill="#94a3b8" font-size="9">Follow player with</text>
+  <text x="170" y="1240" text-anchor="middle" fill="#94a3b8" font-size="9">scroll boundaries</text>
+  <text x="400" y="1210" text-anchor="middle" fill="#93c5fd" font-size="11">ScrollBGLayer</text>
+  <text x="400" y="1226" text-anchor="middle" fill="#94a3b8" font-size="9">Per-layer parallax</text>
+  <text x="400" y="1240" text-anchor="middle" fill="#94a3b8" font-size="9">scroll offsets</text>
+  <text x="620" y="1210" text-anchor="middle" fill="#93c5fd" font-size="11">ScrollBGColumnLoad</text>
+  <text x="620" y="1226" text-anchor="middle" fill="#94a3b8" font-size="9">Stream new tile columns</text>
+  <text x="620" y="1240" text-anchor="middle" fill="#94a3b8" font-size="9">as camera moves</text>
+  <text x="840" y="1210" text-anchor="middle" fill="#93c5fd" font-size="11">ComputeRotationMatrix</text>
+  <text x="840" y="1226" text-anchor="middle" fill="#94a3b8" font-size="9">Affine BG transforms</text>
+  <text x="840" y="1240" text-anchor="middle" fill="#94a3b8" font-size="9">(rotation/scaling)</text>
+
+  <!-- Decompression pipeline -->
+  <rect x="30" y="1280" width="940" height="80" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="500" y="1304" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Decompression Pipeline (all matched to C)</text>
+  <text x="500" y="1330" text-anchor="middle" fill="#94a3b8" font-size="11">AllocAndDecompress &#x2192; DecompressData (Huffman 4-bit + LZ77) &#x2192; DecompressAndDmaCopy &#x2192; VRAM</text>
+  <text x="500" y="1348" text-anchor="middle" fill="#64748b" font-size="10">ROM compressed assets: 162 BG tile sets &#x2022; 162 tilemaps &#x2022; 54 palettes &#x2022; 59 stream scripts</text>
+
+  <text x="500" y="1480" text-anchor="middle" fill="#475569" font-size="10">3 BG layers (tiles + tilemap + palette each) &#x2022; 128 OAM sprites &#x2022; 27 level-specific DMA handlers</text>
+</svg>

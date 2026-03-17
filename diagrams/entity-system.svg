@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1400" font-family="'Segoe UI',system-ui,sans-serif" font-size="13">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#64748b"/></marker>
+    <marker id="ag" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#22c55e"/></marker>
+    <marker id="ar" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#ef4444"/></marker>
+    <filter id="s"><feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.12"/></filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e293b"/></linearGradient>
+  </defs>
+  <rect width="960" height="1400" fill="url(#bg)"/>
+  <text x="480" y="36" text-anchor="middle" fill="#f8fafc" font-size="20" font-weight="700">Entity System</text>
+  <text x="480" y="56" text-anchor="middle" fill="#94a3b8" font-size="11">Per-frame entity update pipeline (code_1 module)</text>
+
+  <!-- Entity Array -->
+  <g filter="url(#s)">
+    <rect x="300" y="80" width="360" height="50" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="480" y="100" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">EntityUpdateDispatch</text>
+    <text x="480" y="118" text-anchor="middle" fill="#94a3b8" font-size="10">Iterate 99 entity slots (0x03002920, 28 bytes each)</text>
+  </g>
+  <line x1="480" y1="130" x2="480" y2="155" stroke="#64748b" marker-end="url(#a)"/>
+
+  <!-- For each entity -->
+  <rect x="180" y="155" width="600" height="1180" rx="10" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="200" y="175" fill="#475569" font-size="12" font-weight="700">FOR EACH ENTITY (i = 0..98)</text>
+
+  <!-- Check active -->
+  <polygon points="480,195 580,225 480,255 380,225" fill="#0f172a" stroke="#f59e0b" stroke-width="1"/>
+  <text x="480" y="228" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="600">Active?</text>
+  <line x1="580" y1="225" x2="680" y2="225" stroke="#64748b"/>
+  <text x="630" y="218" fill="#94a3b8" font-size="10">No &#x2192; skip</text>
+
+  <!-- Player check -->
+  <line x1="480" y1="255" x2="480" y2="280" stroke="#64748b" marker-end="url(#a)"/>
+  <polygon points="480,280 580,310 480,340 380,310" fill="#0f172a" stroke="#3b82f6" stroke-width="1"/>
+  <text x="480" y="308" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="600">Slot 0?</text>
+  <text x="480" y="322" text-anchor="middle" fill="#64748b" font-size="9">(Player)</text>
+
+  <!-- Player branch -->
+  <line x1="380" y1="310" x2="250" y2="310" stroke="#3b82f6"/>
+  <text x="310" y="303" fill="#93c5fd" font-size="10">Yes</text>
+  <line x1="250" y1="310" x2="250" y2="340" stroke="#3b82f6" marker-end="url(#a)"/>
+  <g filter="url(#s)">
+    <rect x="160" y="340" width="180" height="80" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="250" y="358" text-anchor="middle" fill="#86efac" font-size="12" font-weight="700">PlayerMainUpdate</text>
+    <text x="250" y="374" text-anchor="middle" fill="#94a3b8" font-size="9">Read input state</text>
+    <text x="250" y="386" text-anchor="middle" fill="#94a3b8" font-size="9">Jump / attack / grab</text>
+    <text x="250" y="398" text-anchor="middle" fill="#94a3b8" font-size="9">State machine dispatch</text>
+    <text x="250" y="410" text-anchor="middle" fill="#64748b" font-size="9">PlayerGrabInputCheck</text>
+  </g>
+  <line x1="250" y1="420" x2="250" y2="450" stroke="#22c55e" marker-end="url(#ag)"/>
+  <g filter="url(#s)">
+    <rect x="155" y="450" width="190" height="60" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="250" y="470" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">PlayerMovementPhysics</text>
+    <text x="250" y="486" text-anchor="middle" fill="#94a3b8" font-size="9">Velocity + acceleration</text>
+    <text x="250" y="498" text-anchor="middle" fill="#94a3b8" font-size="9">Tile collision (vert + sloped)</text>
+  </g>
+  <line x1="250" y1="510" x2="250" y2="540" stroke="#22c55e" marker-end="url(#ag)"/>
+  <g filter="url(#s)">
+    <rect x="145" y="540" width="210" height="50" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="250" y="558" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">PlayerEntityCollisionCheck</text>
+    <text x="250" y="578" text-anchor="middle" fill="#94a3b8" font-size="9">Check overlap with all other entities</text>
+  </g>
+  <line x1="250" y1="590" x2="480" y2="640" stroke="#64748b" stroke-dasharray="4,3"/>
+
+  <!-- NPC/Entity branch -->
+  <line x1="580" y1="310" x2="700" y2="310" stroke="#3b82f6"/>
+  <text x="640" y="303" fill="#93c5fd" font-size="10">No</text>
+  <line x1="700" y1="310" x2="700" y2="340" stroke="#3b82f6" marker-end="url(#a)"/>
+  <g filter="url(#s)">
+    <rect x="580" y="340" width="240" height="70" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="700" y="358" text-anchor="middle" fill="#93c5fd" font-size="12" font-weight="700">EntityBehaviorMasterUpdate</text>
+    <text x="700" y="374" text-anchor="middle" fill="#94a3b8" font-size="9">Read entity type from +0x00</text>
+    <text x="700" y="386" text-anchor="middle" fill="#94a3b8" font-size="9">Index into behavior function table</text>
+    <text x="700" y="398" text-anchor="middle" fill="#94a3b8" font-size="9">Call entity-specific handler</text>
+  </g>
+  <line x1="700" y1="410" x2="700" y2="440" stroke="#64748b" marker-end="url(#a)"/>
+
+  <!-- Behavior types -->
+  <rect x="520" y="440" width="360" height="170" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="700" y="460" text-anchor="middle" fill="#cbd5e1" font-size="11" font-weight="600">Entity Behavior Handlers</text>
+  <text x="540" y="480" fill="#94a3b8" font-size="10">&#x2022; EntityComplexBehavior</text>
+  <text x="540" y="496" fill="#94a3b8" font-size="10">&#x2022; EntityMovingObstacle</text>
+  <text x="540" y="512" fill="#94a3b8" font-size="10">&#x2022; EntityBossPhaseA/B/C/D</text>
+  <text x="540" y="528" fill="#94a3b8" font-size="10">&#x2022; EntityMiniBoss / MiniBossAlt</text>
+  <text x="540" y="544" fill="#94a3b8" font-size="10">&#x2022; EntityCrushingBlock</text>
+  <text x="540" y="560" fill="#94a3b8" font-size="10">&#x2022; EntitySpringBoard</text>
+  <text x="540" y="576" fill="#94a3b8" font-size="10">&#x2022; EntityCutsceneActor</text>
+  <text x="540" y="592" fill="#94a3b8" font-size="10">&#x2022; EntityFloatPath / EntityPlatformRide</text>
+  <line x1="700" y1="610" x2="480" y2="640" stroke="#64748b" stroke-dasharray="4,3"/>
+
+  <!-- Common pipeline (after player or entity behavior) -->
+  <text x="480" y="655" text-anchor="middle" fill="#475569" font-size="11" font-weight="700">COMMON PER-ENTITY PIPELINE</text>
+
+  <g filter="url(#s)">
+    <rect x="330" y="670" width="300" height="36" rx="6" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="480" y="693" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="600">EntityGravityAndFloorCheck</text>
+  </g>
+  <line x1="480" y1="706" x2="480" y2="726" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="330" y="726" width="300" height="36" rx="6" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="480" y="749" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="600">ApplyEntityTileMovement</text>
+  </g>
+  <line x1="480" y1="762" x2="480" y2="782" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="330" y="782" width="300" height="36" rx="6" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="480" y="805" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="600">EntityScrollBoundsCheck</text>
+  </g>
+  <line x1="480" y1="818" x2="480" y2="838" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="330" y="838" width="300" height="36" rx="6" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="480" y="861" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="600">EntitySpriteFrameUpdate</text>
+  </g>
+  <line x1="480" y1="874" x2="480" y2="894" stroke="#64748b" marker-end="url(#a)"/>
+
+  <g filter="url(#s)">
+    <rect x="330" y="894" width="300" height="36" rx="6" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="480" y="917" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="600">EntitySpriteFlipAndLoad</text>
+  </g>
+
+  <!-- Entity states sidebar -->
+  <line x1="480" y1="930" x2="480" y2="955" stroke="#64748b" marker-end="url(#a)"/>
+  <polygon points="480,955 580,985 480,1015 380,985" fill="#0f172a" stroke="#ec4899" stroke-width="1"/>
+  <text x="480" y="985" text-anchor="middle" fill="#f9a8d4" font-size="10" font-weight="600">State?</text>
+  <text x="480" y="999" text-anchor="middle" fill="#64748b" font-size="9">entity+0x0E flags</text>
+
+  <!-- State branches -->
+  <line x1="380" y1="985" x2="250" y2="985" stroke="#ec4899"/>
+  <line x1="250" y1="985" x2="250" y2="1010" stroke="#ec4899" marker-end="url(#ar)"/>
+  <rect x="190" y="1010" width="120" height="70" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+  <text x="250" y="1030" text-anchor="middle" fill="#f9a8d4" font-size="10" font-weight="600">Carried</text>
+  <text x="250" y="1044" text-anchor="middle" fill="#94a3b8" font-size="9">EntityState</text>
+  <text x="250" y="1056" text-anchor="middle" fill="#94a3b8" font-size="9">Switch_Carried</text>
+  <text x="250" y="1068" text-anchor="middle" fill="#94a3b8" font-size="9">PlayerFollow</text>
+
+  <line x1="430" y1="1010" x2="390" y2="1010" stroke="#ec4899"/>
+  <rect x="330" y="1010" width="120" height="70" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+  <text x="390" y="1030" text-anchor="middle" fill="#f9a8d4" font-size="10" font-weight="600">Thrown</text>
+  <text x="390" y="1044" text-anchor="middle" fill="#94a3b8" font-size="9">EntityThrow</text>
+  <text x="390" y="1056" text-anchor="middle" fill="#94a3b8" font-size="9">Update</text>
+  <text x="390" y="1068" text-anchor="middle" fill="#94a3b8" font-size="9">BounceOffWall</text>
+
+  <line x1="530" y1="1010" x2="530" y2="1010" stroke="#ec4899"/>
+  <rect x="470" y="1010" width="120" height="70" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+  <text x="530" y="1030" text-anchor="middle" fill="#f9a8d4" font-size="10" font-weight="600">Hit</text>
+  <text x="530" y="1044" text-anchor="middle" fill="#94a3b8" font-size="9">EntityHit</text>
+  <text x="530" y="1056" text-anchor="middle" fill="#94a3b8" font-size="9">Reaction</text>
+  <text x="530" y="1068" text-anchor="middle" fill="#94a3b8" font-size="9">ProximityDmg</text>
+
+  <line x1="580" y1="985" x2="670" y2="985" stroke="#ec4899"/>
+  <line x1="670" y1="985" x2="670" y2="1010" stroke="#ec4899"/>
+  <rect x="610" y="1010" width="120" height="70" rx="6" fill="#3b1324" stroke="#ec4899" stroke-width="1"/>
+  <text x="670" y="1030" text-anchor="middle" fill="#f9a8d4" font-size="10" font-weight="600">Death</text>
+  <text x="670" y="1044" text-anchor="middle" fill="#94a3b8" font-size="9">EntityDeath</text>
+  <text x="670" y="1056" text-anchor="middle" fill="#94a3b8" font-size="9">Animation</text>
+  <text x="670" y="1068" text-anchor="middle" fill="#94a3b8" font-size="9">EntityItemDrop</text>
+
+  <!-- Spawning section -->
+  <line x1="250" y1="1080" x2="250" y2="1130" stroke="#64748b" stroke-dasharray="4,3"/>
+  <line x1="390" y1="1080" x2="390" y2="1130" stroke="#64748b" stroke-dasharray="4,3"/>
+  <line x1="530" y1="1080" x2="530" y2="1130" stroke="#64748b" stroke-dasharray="4,3"/>
+  <line x1="670" y1="1080" x2="670" y2="1130" stroke="#64748b" stroke-dasharray="4,3"/>
+  <line x1="250" y1="1130" x2="670" y2="1130" stroke="#64748b" stroke-dasharray="4,3"/>
+  <line x1="480" y1="1130" x2="480" y2="1150" stroke="#64748b" marker-end="url(#a)"/>
+  <text x="480" y="1165" text-anchor="middle" fill="#475569" font-size="11" font-style="italic">Next entity slot (i++)</text>
+
+  <!-- Entity struct reference -->
+  <rect x="200" y="1200" width="560" height="130" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="480" y="1220" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Entity Struct (28 bytes at 0x03002920 + i*28)</text>
+  <text x="220" y="1244" fill="#93c5fd" font-size="10" font-family="monospace">+0x00 type      </text><text x="370" y="1244" fill="#94a3b8" font-size="10">Entity type / behavior ID</text>
+  <text x="220" y="1260" fill="#93c5fd" font-size="10" font-family="monospace">+0x04 posX      </text><text x="370" y="1260" fill="#94a3b8" font-size="10">X position (fixed-point)</text>
+  <text x="220" y="1276" fill="#93c5fd" font-size="10" font-family="monospace">+0x08 posY      </text><text x="370" y="1276" fill="#94a3b8" font-size="10">Y position (fixed-point)</text>
+  <text x="220" y="1292" fill="#93c5fd" font-size="10" font-family="monospace">+0x0E flags     </text><text x="370" y="1292" fill="#94a3b8" font-size="10">State flags (bit0=active, bit1=carried...)</text>
+  <text x="220" y="1308" fill="#93c5fd" font-size="10" font-family="monospace">+0x16 sprFrame  </text><text x="370" y="1308" fill="#94a3b8" font-size="10">Current sprite animation frame</text>
+  <text x="220" y="1324" fill="#93c5fd" font-size="10" font-family="monospace">+0x18 timer     </text><text x="370" y="1324" fill="#94a3b8" font-size="10">Behavior timer / counter</text>
+
+  <text x="480" y="1380" text-anchor="middle" fill="#475569" font-size="10">99 entity slots &#x2022; Slot 0 = player &#x2022; Slots 1-98 = NPCs, enemies, projectiles, pickups</text>
+</svg>
