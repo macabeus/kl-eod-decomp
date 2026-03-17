@@ -242,7 +242,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MidiNoteWithVelocity);
  *   192 lines, writes to REG_SOUND1CNT_L (0x04000060), REG_DMA1SAD (0x040000BC)
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiCommandHandler);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayTrackReset);
+INCLUDE_ASM("asm/nonmatchings/m4a", TrackStop);
 
 /* ── Music Playback Engine ── */
 
@@ -294,12 +294,12 @@ INCLUDE_ASM("asm/nonmatchings/m4a", SoundEffectParamInit);
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", SoundEffectChain);
 /*
- * FreqTableLookup: look up pitch/frequency from ROM tables.
+ * MidiKeyToFreq: look up pitch/frequency from ROM tables.
  * Converts MIDI note numbers to hardware frequency values using
  * ROM_FREQ_TABLE_1 (0x08117A74) and ROM_FREQ_TABLE_2 (0x08117B28).
  *   51 lines, calls FixedPointMultiply
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", FreqTableLookup);
+INCLUDE_ASM("asm/nonmatchings/m4a", MidiKeyToFreq);
 /*
  * MPlayChannelReset: reset a music player channel to idle state.
  * Checks the Sappy magic marker (SAPPY_MAGIC = 0x68736D53 = "Smsh")
@@ -311,14 +311,14 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayChannelReset);
 /* ── Sound Init Dispatcher & Track Control ── */
 
 /*
- * m4aSoundInit_Impl: full sound system initialization dispatcher.
+ * m4aSoundInit: full sound system initialization dispatcher.
  * Calls BitUnPack for data decompression, sets up sound channels,
  * and prepares the music player for first use.
  *   50 lines
  *   calls: BitUnPack, SoundHardwareInit, DirectSoundFifoSetup
  *   refs: ROM_MUSIC_TABLE (0x08118AB4)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", m4aSoundInit_Impl);
+INCLUDE_ASM("asm/nonmatchings/m4a", m4aSoundInit);
 /*
  * Wrapper that calls InitSoundEngine to initialize
  * the MusicPlayer2000 sound engine.
@@ -333,10 +333,10 @@ void SoundInit(void) {
  * Looks up the song header from ROM_MUSIC_TABLE (0x08118AB4) and
  * ROM_MUSIC_META_TABLE (0x08118AE4), then begins playback.
  *   r0: song ID (0-38 for BGM, 39+ for SFX)
- *   21 lines, calls MPlayLoadSongData
+ *   21 lines, calls MPlayStart
  */
-void MPlayLoadSongData(u32, u32);
-void InitSceneState(u32 idx) {
+void MPlayStart(u32, u32);
+void m4aSongNumStart(u32 idx) {
     u32 shifted = idx << 16;
     u32 a0 = 0x08118AB4;
     u32 a1 = 0x08118AE4;
@@ -355,7 +355,7 @@ void InitSceneState(u32 idx) {
         u16 voiceIdx = *(u16 *)(entry + 4);
         u32 voiceOff = (u32)voiceIdx * 12;
         voiceOff += (u32)voiceBase;
-        MPlayLoadSongData(*(u32 *)voiceOff, *(u32 *)entry);
+        MPlayStart(*(u32 *)voiceOff, *(u32 *)entry);
     }
 }
 /*
@@ -370,7 +370,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", m4aSongNumContinue);
  * Copies track headers and sets up the MusicPlayer state for
  * a new song without starting playback.
  *   41 lines
- *   calls: MPlayChannelReset, MPlayLoadSongData
+ *   calls: MPlayChannelReset, MPlayStart
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", m4aSongNumLoad);
 /*
@@ -446,10 +446,10 @@ void m4aSongNumStop(u32 idx) {
  *   calls: MPlayStop
  */
 /**
- * StopAllMusicPlayers: stops all 4 music player instances.
+ * m4aMPlayAllStop: stops all 4 music player instances.
  * Iterates ROM_MUSIC_TABLE (0x08118AB4), calling MPlayStop on each.
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", StopAllMusicPlayers);
+INCLUDE_ASM("asm/nonmatchings/m4a", m4aMPlayAllStop);
 /*
  * Wrapper that calls MPlayChannelReset to stop/reset
  * a single sound channel.
@@ -532,34 +532,34 @@ void PlaySoundWithContext_DC(u32 r0) {
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", DirectSoundFifoSetup);
 /*
- * SoundTimerSetup: configure timer for PCM sample rate.
+ * SampleFreqSet: configure timer for PCM sample rate.
  * Sets TM0/TM1 to generate interrupts at the mixing frequency,
  * which triggers DMA transfers to refill the FIFO buffers.
- *   72 lines, calls m4aSoundVSyncOn (EnableInterruptsAfterGfxSetup), FUN_080518a4
+ *   72 lines, calls m4aSoundVSyncOn (m4aSoundVSyncOn), FUN_080518a4
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", SoundTimerSetup);
+INCLUDE_ASM("asm/nonmatchings/m4a", SampleFreqSet);
 /*
- * SoundSystemConfigure: configure sound system operating mode.
+ * m4aSoundMode: configure sound system operating mode.
  * Sets reverb, mixing frequency, and channel allocation based
  * on the game's audio requirements.
  *   80 lines
  *   HW: REG_SOUNDBIAS (0x04000089)
- *   calls: SoundTimerSetup, m4aSoundShutdown (DisableInterruptsForGfxSetup)
+ *   calls: SampleFreqSet, m4aSoundShutdown (m4aSoundVSyncOff)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", SoundSystemConfigure);
+INCLUDE_ASM("asm/nonmatchings/m4a", m4aSoundMode);
 /*
  * SoundPlatformDetect: detect audio platform capabilities.
  * Checks hardware version and adjusts sound parameters accordingly.
  *   45 lines, calls FUN_0805186c
  */
 /**
- * SoundChannelResetAll: resets all channel status bytes and processes channels.
+ * SoundClear: resets all channel status bytes and processes channels.
  *
  * Checks SAPPY_MAGIC, clears 12 channel status bytes (stride 0x40),
  * then calls FUN_0805186c for channels 1-4 with the voice table.
  * Restores SAPPY_MAGIC on exit.
  */
-void SoundChannelResetAll(void) {
+void SoundClear(void) {
     u32 a0 = 0x03007FF0;
     u32 **infoRef;
     u32 *info;
@@ -616,7 +616,7 @@ void SoundChannelResetAll(void) {
  * sets DMA control to 0x0400 mode, then calls BitUnPack to
  * clear the channel state array.
  */
-void DisableInterruptsForGfxSetup(void) {
+void m4aSoundVSyncOff(void) {
     u32 scratch;
     u32 *info = *(u32 **)0x03007FF0;
     u32 magic = info[0];
@@ -656,7 +656,7 @@ void DisableInterruptsForGfxSetup(void) {
  *   30 lines, leaf function
  *   refs: REG_SOUNDCNT_H (0x040000C6)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", EnableInterruptsAfterGfxSetup);
+INCLUDE_ASM("asm/nonmatchings/m4a", m4aSoundVSyncOn);
 /*
  * VBlankSoundCallback: VBlank-triggered sound update routine.
  * Called by the VBlank interrupt handler to process pending
@@ -669,9 +669,9 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayOpen);
  * Reads song header from ROM, allocates channels, loads instrument
  * data, and prepares the MusicPlayer for playback.
  *   121 lines
- *   calls: SoundContextRef, SoundSystemConfigure
+ *   calls: SoundContextRef, m4aSoundMode
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayLoadSongData);
+INCLUDE_ASM("asm/nonmatchings/m4a", MPlayStart);
 /*
  * MPlayChannelUpdate: update a single music player channel.
  * Processes pending notes, advances timing, and updates the
@@ -721,7 +721,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", CgbModVol);
  * volume conversion. Used by MidiKeyToCgbFreq and CgbSound.
  *   99 lines, leaf function
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", CgbChannelMix);
+INCLUDE_ASM("asm/nonmatchings/m4a", CgbSound);
 /*
  * MidiKeyToCgbFreq: convert MIDI note number to CGB frequency register value.
  * Translates standard MIDI key numbers (0-127) into the frequency
@@ -735,9 +735,9 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MidiKeyToCgbFreq);
  * CgbLookupUtil: CGB utility lookup for pitch/volume tables.
  *   59 lines, leaf function
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", CgbPanLookup);
+INCLUDE_ASM("asm/nonmatchings/m4a", CgbOscOff);
 /*
- * CgbSound: CGB channel hardware control — per-channel register writes.
+ * CgbChannelMix: CGB channel hardware control — per-channel register writes.
  * Configures all 4 CGB sound channels (Square1, Square2, Wave, Noise)
  * by writing to their individual control registers. Handles duty cycle,
  * envelope, frequency, sweep, and wave pattern RAM.
@@ -748,7 +748,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", CgbPanLookup);
  *       REG_SOUND4CNT_L/H (0x04000078-0x0400007C),
  *       REG_WAVE_RAM0 (0x04000090)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", CgbSound);
+INCLUDE_ASM("asm/nonmatchings/m4a", CgbChannelMix);
 
 /* ── Core Mixer / Channel Processing Loop ── */
 
@@ -853,12 +853,12 @@ void SoundCommand_6450(u32 r0, u32 r1) {
  *   118 lines, leaf function
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_ReadU32Param);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_KeyShift);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_SetVoice);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_SetVolume);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_SetPan);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_SetBend);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_SetBendRange);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_SetLFOSpeed);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_SetLFODelay);
-INCLUDE_ASM("asm/nonmatchings/m4a", MPlayCmd_SetModDepth);
+INCLUDE_ASM("asm/nonmatchings/m4a", ply_keysh);
+INCLUDE_ASM("asm/nonmatchings/m4a", ply_voice);
+INCLUDE_ASM("asm/nonmatchings/m4a", ply_vol);
+INCLUDE_ASM("asm/nonmatchings/m4a", ply_pan);
+INCLUDE_ASM("asm/nonmatchings/m4a", ply_bend);
+INCLUDE_ASM("asm/nonmatchings/m4a", ply_bendr);
+INCLUDE_ASM("asm/nonmatchings/m4a", ply_lfos);
+INCLUDE_ASM("asm/nonmatchings/m4a", ply_lfodl);
+INCLUDE_ASM("asm/nonmatchings/m4a", ply_mod);
