@@ -394,9 +394,21 @@ INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetScrollPosition);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGScreenSize);
 /**
  * StreamCmd_SetWindowRegs: writes WIN0H/WIN0V from stream bytes[2-5].
+ * Reads two pairs of bytes from the command stream at gStreamPtr,
+ * packs each pair into a 16-bit value (low | high<<8), and writes
+ * them to REG_WININ (0x04000048) and REG_WINOUT (0x0400004A).
  * Advances stream by 6.
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetWindowRegs);
+void StreamCmd_SetWindowRegs(void) {
+    vu16 *reg = (vu16 *)0x04000048;
+    u8 **streamPtrAddr = (u8 **)0x03004D84;
+    u8 *stream = *streamPtrAddr;
+
+    *reg = stream[2] | (stream[3] << 8);
+    reg++;
+    *reg = stream[4] | (stream[5] << 8);
+    *streamPtrAddr = stream + 6;
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_EnableScrollMode);
 /**
  * StreamCmd_StopMusic: stream command to halt all music playback.
