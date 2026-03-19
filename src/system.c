@@ -9,7 +9,18 @@ INCLUDE_ASM("asm/nonmatchings/system", StrCmp);
 /** ReturnOne: unconditionally returns 1. */
 INCLUDE_ASM("asm/nonmatchings/system", ReturnOne);
 /** StrCpy: copies a null-terminated string from src to dst. */
-INCLUDE_ASM("asm/nonmatchings/system", StrCpy);
+__attribute__((naked)) void StrCpy(u8 *dst, u8 *src) {
+    asm(
+        "ldrb r2, [r1, #0]\n"
+        "strb r2, [r0, #0]\n"
+        "add r0, #1\n"
+        "add r1, #1\n"
+        "cmp r2, #0\n"
+        "bne StrCpy\n"
+        "bx lr\n"
+        ".align 2, 0\n"
+    );
+}
 
 /**
  * AgbMain: game entry point.
