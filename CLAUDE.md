@@ -21,6 +21,8 @@ Build requires `arm-none-eabi` toolchain, Python 3.13+, and a legally obtained `
 ## Toolchain
 
 - **Compiler**: `agbcc` (tools/agbcc/) — GCC 2.95 targeting ARM7TDMI, Thumb interwork, `-O2`
+  - **`-ftst` flag**: Patched to emit `tst` instruction for bitwise flag tests. Required for 7 core MP2000 functions. m4a.o is compiled with this flag.
+  - **Per-compilation-unit TST**: The original m4a module was compiled from multiple source files — some with TST, some without. Functions from the TST compilation unit must use `-ftst`; others must not.
 - **Assembler/Linker**: `arm-none-eabi-as` / `arm-none-eabi-ld`
 - **Disassembler**: Luvdis (tools/luvdis/) — generates asm/ from baserom.gba
 
