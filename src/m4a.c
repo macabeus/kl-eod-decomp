@@ -553,10 +553,7 @@ void SoundClear(void) {
  * sets DMA control to 0x0400 mode, then calls BitUnPack to
  * clear the channel state array.
  *
- * NOTE: This function uses ands+cmp (not tst) in the original ROM,
- * but m4a.c is compiled with -ftst. Until we split m4a.c into
- * separate compilation units matching the original build, this
- * function must remain as INCLUDE_ASM. See GitHub issue #54.
+ * Compiled in m4a.c (non-TST compilation unit, no -ftst).
  *   43 lines, calls BitUnPack
  */
 void m4aSoundVSyncOff(void) {
