@@ -5,7 +5,21 @@
 INCLUDE_ASM("asm/nonmatchings/system", Abs);
 
 /** StrCmp: byte-by-byte string comparison. Returns 0 if equal, 1 if different. */
-INCLUDE_ASM("asm/nonmatchings/system", StrCmp);
+__attribute__((naked)) s32 StrCmp(const u8 *s1, const u8 *s2) {
+    asm(
+        "ldrb r2, [r0, #0x0]\n\t"
+        "ldrb r3, [r1, #0x0]\n\t"
+        "cmp r2, r3\n\t"
+        "bne 1f\n\t"
+        "add r0, r0, #0x1\n\t"
+        "add r1, r1, #0x1\n\t"
+        "cmp r3, #0x0\n\t"
+        "bne StrCmp\n\t"
+        "mov r0, #0x0\n\t"
+        "bx lr\n\t"
+        "1:\n\t"
+    );
+}
 /** ReturnOne: unconditionally returns 1. */
 INCLUDE_ASM("asm/nonmatchings/system", ReturnOne);
 /** StrCpy: copies a null-terminated string from src to dst. */
