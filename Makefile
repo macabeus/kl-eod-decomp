@@ -47,7 +47,7 @@ DATA_BUILDDIR := $(OBJ_DIR)/$(DATA_SUBDIR)
 ASM_SRCS := $(wildcard $(ASM_SUBDIR)/*.s)
 ASM_OBJS := $(patsubst $(ASM_SUBDIR)/%.s,$(ASM_BUILDDIR)/%.o,$(ASM_SRCS))
 
-C_SRCS := $(wildcard $(C_SUBDIR)/*.c)
+C_SRCS := $(filter-out $(C_SUBDIR)/m4a_1.c,$(wildcard $(C_SUBDIR)/*.c))
 C_OBJS := $(patsubst $(C_SUBDIR)/%.c,$(C_BUILDDIR)/%.o,$(C_SRCS))
 
 DATA_SRCS := $(wildcard $(DATA_SUBDIR)/*.s)
@@ -62,8 +62,10 @@ ASFLAGS  := -mcpu=arm7tdmi -mthumb-interwork
 CPPFLAGS := -nostdinc -I tools/agbcc/include -iquote include
 CC1FLAGS := -mthumb-interwork -Wimplicit -Wparentheses -O2 -fhex-asm -fprologue-bugfix
 
-# Per-file compiler flags (use target-specific variables)
-$(C_BUILDDIR)/m4a.o: CC1FLAGS += -ftst
+# TST compilation unit: m4a_1.c is pre-compiled with -ftst into build/m4a_1_funcs.s,
+# then included as assembly in m4a.c via INCLUDE_ASM. This keeps all m4a functions
+# in one .text section (required due to shared literal pools in the ROM assembly).
+TST_CC1FLAGS := $(CC1FLAGS) -ftst
 
 DECOMP_TOML := klonoa-eod-decomp.toml
 LDSCRIPT    := ldscript.txt
@@ -111,6 +113,17 @@ $(LDSCRIPT): $(LDSCRIPT_IN) $(DECOMP_TOML)
 $(ASM_BUILDDIR)/%.o: $(ASM_SUBDIR)/%.s
 	@echo "$(AS) <flags> -o $@ $<"
 	@$(AS) $(ASFLAGS) -o $@ $<
+
+# Pre-compile TST functions (m4a_1.c → build/m4a_1_funcs.s)
+# This assembly is included by m4a.c via INCLUDE_ASM so all m4a functions
+# stay in one .text section (required by shared literal pools).
+$(OBJ_DIR)/m4a_1_funcs.s: $(C_SUBDIR)/m4a_1.c
+	@echo "$(CC1) <flags> -ftst -o $@ $<"
+	@$(CPP) $(CPPFLAGS) $< -o $(OBJ_DIR)/m4a_1.i
+	@$(CC1) $(TST_CC1FLAGS) -o $(OBJ_DIR)/m4a_1_raw.s $(OBJ_DIR)/m4a_1.i
+	@sed '/^@/d;/^\.code/d;/^\.gcc2_compiled/d;/^\.text$$/d;/^\.Lfe/d;/^[[:space:]]*\.size/d;/macros\.inc/d;s/\.L\([0-9]\)/.Lm4a1_\1/g' $(OBJ_DIR)/m4a_1_raw.s > $@
+
+$(C_BUILDDIR)/m4a.o: $(OBJ_DIR)/m4a_1_funcs.s
 
 # Compile C files (with INCLUDE_ASM support)
 $(C_BUILDDIR)/%.o: $(C_SUBDIR)/%.c
