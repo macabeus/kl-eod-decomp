@@ -4,6 +4,11 @@
 
 > 🌙 Turning the dreams into C code, one function at a time.
 
+[![Progress]][progress site]
+
+[Progress]: https://decomp.dev/Dream-Atelier/kl-eod-decomp?mode=shield&measure=code&category=all&label=Progress
+[progress site]: https://decomp.dev/Dream-Atelier/kl-eod-decomp
+
 A work-in-progress matching decompilation of **Klonoa: Empire of Dreams** (GBA, 2001).
 
 ## What is Matching Decompilation?
