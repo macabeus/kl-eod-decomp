@@ -185,10 +185,15 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayTrackCallback);
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", VoiceGetParams);
 /*
- * VoiceLookup: voice parameter lookup wrapper.
+ * VoiceLookupAndApply: walk linked list of active voices and apply parameters.
+ *
+ * C source is in src/m4a_1.c (TST compilation unit, compiled with -ftst).
+ * The build system pre-compiles m4a_1.c into build/m4a_1_funcs.s, which is
+ * included here as assembly so it stays in the same .text section as the
+ * other m4a functions (required due to shared literal pools). See issue #54.
  *   28 lines, calls VoiceGetParams
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", VoiceLookupAndApply);
+asm(".include \"build/m4a_1_funcs.s\"");
 /*
  * InstrumentLookup: look up instrument data from ROM_INSTRUMENT_TABLE.
  * Given a program/voice number, returns a pointer to the instrument entry
