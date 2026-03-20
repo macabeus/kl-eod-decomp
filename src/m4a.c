@@ -776,6 +776,18 @@ INCLUDE_ASM("asm/nonmatchings/m4a", ply_vol);
 INCLUDE_ASM("asm/nonmatchings/m4a", ply_pan);
 INCLUDE_ASM("asm/nonmatchings/m4a", ply_bend);
 INCLUDE_ASM("asm/nonmatchings/m4a", ply_bendr);
-INCLUDE_ASM("asm/nonmatchings/m4a", ply_lfos);
+typedef struct {
+    u8 unk00[0x1F];
+    u8 unk1F;
+    u8 unk20[0x20];
+    u8 *unk40;
+} TrackStruct;
+
+void ply_lfos(void *r0, TrackStruct *r1) {
+    u8 *ptr;
+    ptr = r1->unk40;
+    r1->unk1F = *ptr;
+    r1->unk40 = ptr + 1;
+}
 INCLUDE_ASM("asm/nonmatchings/m4a", ply_lfodl);
 INCLUDE_ASM("asm/nonmatchings/m4a", ply_mod);
