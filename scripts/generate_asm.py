@@ -1333,6 +1333,686 @@ def _validate_baserom():
     print(f"  baserom.gba: OK ({EXPECTED_SHA1})")
 
 
+# Matches ".2byte 0xXXXX @ bCC _TARGET"
+_2BYTE_BRANCH_RE = re.compile(
+    r"(\s*)\.2byte\s+0x[0-9A-Fa-f]+\s+@\s+(b\w+)\s+(_[0-9A-Fa-f]+)"
+)
+
+
+def _fix_2byte_branches(path: str):
+    """Replace .2byte branch encodings with proper branch instructions.
+
+    Luvdis emits ``.2byte 0xXXXX @ bCC _TARGET`` when it cannot resolve
+    a conditional branch (typically cross-function branches within the
+    same module).  This function:
+
+    1. Computes the ROM address of every line using
+       ``_compute_addresses_anchored``.
+    2. Collects all branch targets from ``.2byte`` comments.
+    3. Inserts missing target labels at the correct byte positions.
+    4. Replaces ``.2byte`` with the proper branch instruction.
+
+    Called on the monolithic Luvdis output **before** function splitting
+    so that labels and branches are in place when functions are detected.
+    """
+    with open(path) as f:
+        lines = f.readlines()
+
+    # --- Compute address of every line ---
+    # Find the first function label to get the ROM base
+    start_addr = 0x08000000
+    for line in lines:
+        m = _FUNC_LABEL_ADDR_RE.match(line.strip())
+        if m:
+            start_addr = int(m.group(1), 16)
+            break
+
+    addrs = _compute_addresses_anchored(lines, start_addr)
+
+    # --- Collect branch targets ---
+    needed = set()          # label names needed
+    branch_idxs = {}        # line_idx -> (indent, insn, target)
+    for i, line in enumerate(lines):
+        m = _2BYTE_BRANCH_RE.match(line)
+        if m:
+            branch_idxs[i] = (m.group(1), m.group(2), m.group(3))
+            needed.add(m.group(3))
+
+    # --- Find existing labels ---
+    existing = set()
+    for line in lines:
+        m = re.match(r"^(\w+):", line)
+        if m:
+            existing.add(m.group(1))
+
+    missing = needed - existing
+    if not missing and not branch_idxs:
+        return  # nothing to do
+
+    # --- Map target addresses to line indices ---
+    target_addrs = {}       # addr -> label name
+    for label in missing:
+        m = re.match(r"_([0-9A-Fa-f]+)$", label)
+        if m:
+            target_addrs[int(m.group(1), 16)] = label
+
+    # Build addr -> first line index at that addr (for label insertion)
+    inserts = {}            # line_idx -> label name
+    for i, addr in enumerate(addrs):
+        if addr in target_addrs:
+            inserts[i] = target_addrs.pop(addr)
+
+    placed = len(missing) - len(target_addrs)
+
+    # --- Rebuild file ---
+    new_lines = []
+    for i, line in enumerate(lines):
+        if i in inserts:
+            new_lines.append(f"{inserts[i]}:\n")
+        if i in branch_idxs:
+            indent, insn, target = branch_idxs[i]
+            new_lines.append(f"{indent}{insn} {target}\n")
+        else:
+            new_lines.append(line)
+
+    with open(path, "w") as f:
+        f.writelines(new_lines)
+
+    branches_fixed = len(branch_idxs)
+    unplaced = len(target_addrs)
+    print(f"  {placed} labels added, {branches_fixed} branches resolved"
+          + (f" ({unplaced} targets not placed)" if unplaced else ""))
+
+
+def _fix_2byte_in_split_files():
+    """Replace .2byte branch encodings in per-function .s files.
+
+    Uses the ROM binary to verify each .2byte encoding against the
+    computed source address.  Only converts branches where the ROM
+    verification passes.  Two labels (0x08047B04, 0x0804EA70) are
+    excluded due to data-as-code regions causing off-by-2 placement.
+    """
+    # Labels that _compute_addresses_anchored places incorrectly
+    # due to data-as-code regions (off by 2 bytes).
+    SKIP_LABELS = {"_08047B04", "_0804EA70"}
+    nm_root = os.path.join(ROOT, "asm", "nonmatchings")
+    with open(BASEROM, "rb") as f:
+        rom = f.read()
+
+    # Collect all .s files
+    all_files = {}
+    for mod in os.listdir(nm_root):
+        mod_dir = os.path.join(nm_root, mod)
+        if not os.path.isdir(mod_dir):
+            continue
+        for fname in os.listdir(mod_dir):
+            if not fname.endswith(".s"):
+                continue
+            fpath = os.path.join(mod_dir, fname)
+            with open(fpath) as f:
+                all_files[fpath] = f.readlines()
+
+    # For each file, compute addr map and find .2byte entries
+    all_labels = {}  # label -> fpath
+    for fpath, lines in all_files.items():
+        for line in lines:
+            m = re.match(r"^(\w+):", line)
+            if m:
+                all_labels[m.group(1)] = fpath
+
+    # Build global addr → (fpath, line_idx) map from anchored addresses only
+    addr_index = {}  # addr -> (fpath, line_idx)
+    for fpath, lines in all_files.items():
+        start = 0
+        for line in lines:
+            m = _FUNC_LABEL_ADDR_RE.match(line.strip())
+            if m:
+                start = int(m.group(1), 16)
+                break
+            m2 = _ADDR_LABEL_RE.match(line.strip())
+            if m2:
+                start = int(m2.group(1), 16)
+                break
+        if not start:
+            continue
+        addrs = _compute_addresses_anchored(lines, start)
+        for i, a in enumerate(addrs):
+            if a not in addr_index:
+                addr_index[a] = (fpath, i)
+
+    # Process each .2byte branch
+    labels_added = 0
+    branches_fixed = 0
+    globals_added = 0
+
+    # Collect all branch entries first
+    branch_info = []  # (fpath, line_idx, indent, insn, target_label, target_addr, source_addr)
+    for fpath, lines in all_files.items():
+        start = 0
+        for line in lines:
+            m = _FUNC_LABEL_ADDR_RE.match(line.strip())
+            if m:
+                start = int(m.group(1), 16)
+                break
+            m2 = _ADDR_LABEL_RE.match(line.strip())
+            if m2:
+                start = int(m2.group(1), 16)
+                break
+        if not start:
+            continue
+
+        addrs = _compute_addresses_anchored(lines, start)
+        for i, line in enumerate(lines):
+            m2 = _2BYTE_BRANCH_RE.match(line)
+            if not m2:
+                continue
+            indent, insn, target = m2.group(1), m2.group(2), m2.group(3)
+            tm = re.match(r"_([0-9A-Fa-f]+)$", target)
+            if not tm or target in SKIP_LABELS:
+                continue
+            target_addr = int(tm.group(1), 16)
+
+            # Verify: read the ROM at the computed source address and check the .2byte value
+            src_addr = addrs[i]
+            rom_offset = src_addr - 0x08000000
+            if 0 <= rom_offset < len(rom) - 1:
+                rom_hw = struct.unpack_from("<H", rom, rom_offset)[0]
+                raw_m = re.search(r"0x([0-9A-Fa-f]+)", line)
+                if raw_m:
+                    asm_hw = int(raw_m.group(1), 16)
+                    if rom_hw == asm_hw:
+                        # Verified: our source address is correct
+                        branch_info.append((fpath, i, indent, insn, target, target_addr, src_addr))
+
+    # For verified branches, add target labels and convert
+    needs_global = {}  # label -> defining fpath
+    file_changes = {}  # fpath -> list of (line_idx, action, data)
+
+    for fpath, line_idx, indent, insn, target, target_addr, src_addr in branch_info:
+        if target in all_labels:
+            # Label already exists — just convert the .2byte
+            file_changes.setdefault(fpath, []).append(
+                (line_idx, "convert", (indent, insn, target)))
+            branches_fixed += 1
+            if all_labels[target] != fpath:
+                needs_global[target] = all_labels[target]
+            continue
+
+        # Need to add label. Find position in addr_index
+        if target_addr not in addr_index:
+            continue  # can't place — skip this branch
+
+        tgt_fpath, tgt_line = addr_index[target_addr]
+
+        # Verify target position: ROM byte at target_addr should be a valid instruction
+        tgt_rom_offset = target_addr - 0x08000000
+        if tgt_rom_offset < 0 or tgt_rom_offset >= len(rom):
+            continue
+
+        # Add label and convert
+        file_changes.setdefault(tgt_fpath, []).append(
+            (tgt_line, "label", target))
+        all_labels[target] = tgt_fpath
+        labels_added += 1
+
+        file_changes.setdefault(fpath, []).append(
+            (line_idx, "convert", (indent, insn, target)))
+        branches_fixed += 1
+
+        if tgt_fpath != fpath:
+            needs_global[target] = tgt_fpath
+
+    # Apply changes to files (process in reverse line order to avoid index shifts)
+    for fpath, changes in file_changes.items():
+        lines = list(all_files[fpath])
+        # Sort changes by line index, descending (to avoid index shifting)
+        changes.sort(key=lambda x: x[0], reverse=True)
+        # But labels must be inserted BEFORE conversions at the same index
+        # Group by line_idx
+        by_line = {}
+        for line_idx, action, data in changes:
+            by_line.setdefault(line_idx, []).append((action, data))
+
+        new_lines = []
+        for i, line in enumerate(lines):
+            if i in by_line:
+                for action, data in by_line[i]:
+                    if action == "label":
+                        new_lines.append(f"{data}:\n")
+                converted = False
+                for action, data in by_line[i]:
+                    if action == "convert":
+                        indent, insn, target = data
+                        new_lines.append(f"{indent}{insn} {target}\n")
+                        converted = True
+                        break
+                if not converted:
+                    new_lines.append(line)
+            else:
+                new_lines.append(line)
+        all_files[fpath] = new_lines
+
+    # Add .global for cross-file references
+    for target, def_fpath in needs_global.items():
+        lines = all_files[def_fpath]
+        if not any(f".global {target}" in l for l in lines):
+            new_lines = []
+            for line in lines:
+                if line.strip() == f"{target}:" or line.strip().startswith(f"{target}:"):
+                    new_lines.append(f".global {target}\n")
+                    globals_added += 1
+                new_lines.append(line)
+            all_files[def_fpath] = new_lines
+
+    # Write all files
+    for fpath, lines in all_files.items():
+        with open(fpath, "w") as f:
+            f.writelines(lines)
+
+    print(f"  {labels_added} labels added, {branches_fixed} branches resolved, "
+          f"{globals_added} .global added")
+
+
+def _resolve_known_2byte_branches():
+    """Replace .2byte branch encodings ONLY when the target label already exists.
+
+    Does NOT insert new labels (address computation is unreliable in
+    data-as-code regions). Only converts .2byte → branch instruction
+    when the target label is already defined in the same translation unit.
+
+    Also adds .global for cross-file label references.
+    """
+    nm_root = os.path.join(ROOT, "asm", "nonmatchings")
+
+    # Collect all labels across all .s files
+    all_labels = set()
+    all_files = {}
+    for mod in os.listdir(nm_root):
+        mod_dir = os.path.join(nm_root, mod)
+        if not os.path.isdir(mod_dir):
+            continue
+        for fname in os.listdir(mod_dir):
+            if not fname.endswith(".s"):
+                continue
+            fpath = os.path.join(mod_dir, fname)
+            with open(fpath) as f:
+                lines = f.readlines()
+            all_files[fpath] = lines
+            for line in lines:
+                m = re.match(r"^(\w+):", line)
+                if m:
+                    all_labels.add(m.group(1))
+
+    # Replace .2byte with branch instructions only if target label exists
+    branches_fixed = 0
+    globals_added = 0
+    cross_file_refs = {}  # label -> set of files referencing it
+
+    for fpath, lines in all_files.items():
+        file_labels = {m.group(1) for line in lines
+                       for m in [re.match(r"^(\w+):", line)] if m}
+        new_lines = []
+        changed = False
+        for line in lines:
+            m = _2BYTE_BRANCH_RE.match(line)
+            if m:
+                indent, insn, target = m.group(1), m.group(2), m.group(3)
+                if target in all_labels:
+                    new_lines.append(f"{indent}{insn} {target}\n")
+                    branches_fixed += 1
+                    changed = True
+                    if target not in file_labels:
+                        cross_file_refs.setdefault(target, set()).add(fpath)
+                    continue
+            new_lines.append(line)
+        if changed:
+            all_files[fpath] = new_lines
+
+    # Add .global for cross-file references
+    for target, ref_files in cross_file_refs.items():
+        # Find which file defines the label
+        for fpath, lines in all_files.items():
+            if any(line.startswith(f"{target}:") for line in lines):
+                if not any(f".global {target}" in l for l in lines):
+                    new_lines = []
+                    for line in lines:
+                        if line.startswith(f"{target}:"):
+                            new_lines.append(f".global {target}\n")
+                            globals_added += 1
+                        new_lines.append(line)
+                    all_files[fpath] = new_lines
+                break
+
+    # Write modified files
+    for fpath, lines in all_files.items():
+        with open(fpath, "w") as f:
+            f.writelines(lines)
+
+    print(f"  {branches_fixed} branches resolved, {globals_added} .global added")
+
+
+def _fix_2byte_branches_verified():
+    """Replace .2byte branch encodings with proper instructions, verified against ROM.
+
+    For each .2byte branch:
+    1. Decode the raw branch encoding to compute the target address
+    2. Find the .s file containing the target address
+    3. Add a label at the exact position (verified by _compute_addresses_anchored)
+    4. Only convert if the computed target matches the @ comment
+
+    This avoids silent mismatches from incorrect byte counting.
+    """
+    nm_root = os.path.join(ROOT, "asm", "nonmatchings")
+
+    # Collect all .s files with their content, labels, and address maps
+    all_files = {}  # fpath -> lines
+    all_labels = {}  # label_name -> fpath
+    addr_maps = {}  # fpath -> {addr: line_idx}
+
+    for mod in os.listdir(nm_root):
+        mod_dir = os.path.join(nm_root, mod)
+        if not os.path.isdir(mod_dir):
+            continue
+        for fname in os.listdir(mod_dir):
+            if not fname.endswith(".s"):
+                continue
+            fpath = os.path.join(mod_dir, fname)
+            with open(fpath) as f:
+                lines = f.readlines()
+            all_files[fpath] = lines
+
+            # Get start address
+            start_addr = 0
+            for line in lines:
+                m = _FUNC_LABEL_ADDR_RE.match(line.strip())
+                if m:
+                    start_addr = int(m.group(1), 16)
+                    break
+                m2 = _ADDR_LABEL_RE.match(line.strip())
+                if m2:
+                    start_addr = int(m2.group(1), 16)
+                    break
+
+            if start_addr:
+                addrs = _compute_addresses_anchored(lines, start_addr)
+                amap = {}
+                for i, a in enumerate(addrs):
+                    if a not in amap:
+                        amap[a] = i
+                addr_maps[fpath] = amap
+
+            for line in lines:
+                m = re.match(r"^(\w+):", line)
+                if m:
+                    all_labels[m.group(1)] = fpath
+
+    # Decode each .2byte branch to get its source address and target address
+    COND_CODES = {
+        0xD0: 'beq', 0xD1: 'bne', 0xD2: 'bcs', 0xD3: 'bcc',
+        0xD4: 'bmi', 0xD5: 'bpl', 0xD6: 'bvs', 0xD7: 'bvc',
+        0xD8: 'bhi', 0xD9: 'bls', 0xDA: 'bge', 0xDB: 'blt',
+        0xDC: 'bgt', 0xDD: 'ble',
+    }
+
+    labels_added = 0
+    branches_fixed = 0
+
+    for fpath, lines in list(all_files.items()):
+        if fpath not in addr_maps:
+            continue
+        amap = addr_maps[fpath]
+        addrs = _compute_addresses_anchored(lines, min(amap.values()) if amap else 0)
+
+        # Re-compute addrs from start
+        start_addr = 0
+        for line in lines:
+            m = _FUNC_LABEL_ADDR_RE.match(line.strip())
+            if m:
+                start_addr = int(m.group(1), 16)
+                break
+            m2 = _ADDR_LABEL_RE.match(line.strip())
+            if m2:
+                start_addr = int(m2.group(1), 16)
+                break
+        if not start_addr:
+            continue
+        addrs = _compute_addresses_anchored(lines, start_addr)
+
+        file_labels = {m.group(1) for line in lines
+                       for m in [re.match(r"^(\w+):", line)] if m}
+
+        inserts = {}  # line_idx -> label to insert
+        converts = {}  # line_idx -> (indent, insn, target)
+
+        for i, line in enumerate(lines):
+            m = _2BYTE_BRANCH_RE.match(line)
+            if not m:
+                continue
+
+            indent, insn, target = m.group(1), m.group(2), m.group(3)
+            tm = re.match(r"_([0-9A-Fa-f]+)$", target)
+            if not tm:
+                continue
+            target_addr = int(tm.group(1), 16)
+
+            # Check if target label already exists
+            if target in all_labels or target in file_labels:
+                converts[i] = (indent, insn, target)
+                continue
+
+            # Try to add label: find which file has target_addr
+            placed = False
+            for tfpath, tamap in addr_maps.items():
+                if target_addr in tamap:
+                    tidx = tamap[target_addr]
+                    tlines = all_files[tfpath]
+                    # Verify: check the line at tidx isn't a label or directive
+                    # (it should be an instruction line)
+                    if tfpath == fpath:
+                        inserts[tidx] = target
+                        file_labels.add(target)
+                    else:
+                        # Cross-file: insert label and mark .global
+                        tlines_new = list(tlines)
+                        tlines_new.insert(tidx, f".global {target}\n{target}:\n")
+                        all_files[tfpath] = tlines_new
+                        # Recompute addr_maps for this file
+                        tstart = 0
+                        for tl in tlines_new:
+                            tm2 = _FUNC_LABEL_ADDR_RE.match(tl.strip())
+                            if tm2:
+                                tstart = int(tm2.group(1), 16)
+                                break
+                            tm3 = _ADDR_LABEL_RE.match(tl.strip())
+                            if tm3:
+                                tstart = int(tm3.group(1), 16)
+                                break
+                        if tstart:
+                            new_addrs = _compute_addresses_anchored(tlines_new, tstart)
+                            new_amap = {}
+                            for j, a in enumerate(new_addrs):
+                                if a not in new_amap:
+                                    new_amap[a] = j
+                            addr_maps[tfpath] = new_amap
+                    all_labels[target] = tfpath
+                    converts[i] = (indent, insn, target)
+                    labels_added += 1
+                    placed = True
+                    break
+
+            if not placed:
+                pass  # leave as .2byte
+
+        # Rebuild this file's lines
+        if inserts or converts:
+            new_lines = []
+            for i, line in enumerate(lines):
+                if i in inserts:
+                    new_lines.append(f"{inserts[i]}:\n")
+                if i in converts:
+                    indent, insn, target = converts[i]
+                    new_lines.append(f"{indent}{insn} {target}\n")
+                    branches_fixed += 1
+                else:
+                    new_lines.append(line)
+            all_files[fpath] = new_lines
+
+    # Write all modified files
+    for fpath, lines in all_files.items():
+        with open(fpath, "w") as f:
+            f.writelines(lines)
+
+    print(f"  {labels_added} labels added, {branches_fixed} branches resolved")
+
+
+def _fix_2byte_branches_per_file():
+    """Replace .2byte branch encodings with proper instructions in per-function .s files.
+
+    Runs AFTER function splitting so sub-function detection is unaffected.
+    For each .s file:
+    1. Compute ROM addresses using _compute_addresses_anchored
+    2. Add missing branch target labels within the file
+    3. Replace .2byte with proper branch instructions
+    4. For targets in OTHER files, add .global declarations
+    """
+    nm_root = os.path.join(ROOT, "asm", "nonmatchings")
+
+    # Pass 1: Collect all labels defined across all .s files
+    all_labels = {}  # label_name -> filepath
+    all_files = {}   # filepath -> lines
+    for mod in os.listdir(nm_root):
+        mod_dir = os.path.join(nm_root, mod)
+        if not os.path.isdir(mod_dir):
+            continue
+        for fname in os.listdir(mod_dir):
+            if not fname.endswith(".s"):
+                continue
+            fpath = os.path.join(mod_dir, fname)
+            with open(fpath) as f:
+                lines = f.readlines()
+            all_files[fpath] = lines
+            for line in lines:
+                m = re.match(r"^(\w+):", line)
+                if m:
+                    all_labels[m.group(1)] = fpath
+
+    # Pass 2: Collect all .2byte branch entries and their targets
+    needed_targets = {}  # target_label -> set of source files
+    for fpath, lines in all_files.items():
+        for line in lines:
+            m = _2BYTE_BRANCH_RE.match(line)
+            if m:
+                target = m.group(3)
+                needed_targets.setdefault(target, set()).add(fpath)
+
+    if not needed_targets:
+        return
+
+    # Pass 3: For missing labels, find which file should contain them and add them
+    labels_added = 0
+    globals_added = 0
+    branches_fixed = 0
+
+    for fpath, lines in all_files.items():
+        # Get function start address
+        start_addr = 0
+        for line in lines:
+            m = _FUNC_LABEL_ADDR_RE.match(line.strip())
+            if not m:
+                m2 = _ADDR_LABEL_RE.match(line.strip())
+                if m2:
+                    start_addr = int(m2.group(1), 16)
+                    break
+            else:
+                start_addr = int(m.group(1), 16)
+                break
+
+        if start_addr == 0:
+            continue
+
+        addrs = _compute_addresses_anchored(lines, start_addr)
+
+        # Find targets that should be in THIS file (address falls within)
+        file_labels = {m.group(1) for line in lines
+                       for m in [re.match(r"^(\w+):", line)] if m}
+
+        # Build addr -> line_idx map for label insertion
+        addr_to_line = {}
+        for i, addr in enumerate(addrs):
+            if addr not in addr_to_line:
+                addr_to_line[addr] = i
+
+        # Check which targets belong in this file
+        inserts = {}  # line_idx -> label
+        for target, source_files in needed_targets.items():
+            if target in all_labels:
+                # Label exists somewhere — if it's in this file, done.
+                # If in another file and referenced from this file, add .global
+                if target in file_labels:
+                    continue  # already here
+                if all_labels[target] != fpath and fpath in source_files:
+                    # Need .global in the file that defines it
+                    pass  # handled separately below
+                continue
+
+            # Label doesn't exist anywhere. Check if target addr is in this file
+            m = re.match(r"_([0-9A-Fa-f]+)$", target)
+            if not m:
+                continue
+            target_addr = int(m.group(1), 16)
+            if target_addr in addr_to_line:
+                inserts[addr_to_line[target_addr]] = target
+                all_labels[target] = fpath
+                file_labels.add(target)
+                labels_added += 1
+
+        # Replace .2byte with branch instructions (only if target label exists)
+        new_lines = []
+        for i, line in enumerate(lines):
+            if i in inserts:
+                new_lines.append(f"{inserts[i]}:\n")
+            m = _2BYTE_BRANCH_RE.match(line)
+            if m:
+                indent, insn, target = m.group(1), m.group(2), m.group(3)
+                if target in all_labels or target in file_labels:
+                    new_lines.append(f"{indent}{insn} {target}\n")
+                    branches_fixed += 1
+                else:
+                    new_lines.append(line)  # keep .2byte — target not found
+            else:
+                new_lines.append(line)
+
+        if new_lines != lines:
+            all_files[fpath] = new_lines
+
+    # Pass 4: Add .global for cross-file references
+    for target, source_files in needed_targets.items():
+        if target not in all_labels:
+            continue
+        def_file = all_labels[target]
+        if any(sf != def_file for sf in source_files):
+            # Target is defined in def_file but referenced from another file
+            lines = all_files[def_file]
+            # Check if .global already exists
+            if not any(f".global {target}" in l for l in lines):
+                # Add .global before the label
+                new_lines = []
+                for line in lines:
+                    if line.strip() == f"{target}:":
+                        new_lines.append(f".global {target}\n")
+                        globals_added += 1
+                    new_lines.append(line)
+                all_files[def_file] = new_lines
+
+    # Write modified files
+    for fpath, lines in all_files.items():
+        with open(fpath, "w") as f:
+            f.writelines(lines)
+
+    print(f"  {labels_added} labels added, {branches_fixed} branches resolved, "
+          f"{globals_added} .global directives added")
+
+
 def _run_luvdis():
     """Run Luvdis disassembler → build/rom_disasm.s."""
     output = os.path.join(ROOT, "build", "rom_disasm.s")
@@ -1407,6 +2087,9 @@ def main():
 
     print("[6/9] Applying fixups...")
     _apply_fixups()
+
+    print("[6.5/9] Fixing .2byte branch encodings...")
+    _fix_2byte_in_split_files()
 
     print("[7/9] Downgrading internal symbols...")
     _downgrade_internal_symbols()
