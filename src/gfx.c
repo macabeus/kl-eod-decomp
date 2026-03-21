@@ -389,7 +389,15 @@ INCLUDE_ASM("asm/nonmatchings/gfx", UpdatePaletteFadeStep);
 INCLUDE_ASM("asm/nonmatchings/gfx", ProcessSceneTransitionOut);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGModeTiled);
 INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e404);
-INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ClearRenderMode);
+void StreamCmd_ClearRenderMode(void) {
+    s8 *p;
+    u8 **streamPtr;
+
+    p = *(s8 **)0x030034A0;
+    *p &= -4;
+    streamPtr = (u8 **)0x03004D84;
+    *streamPtr += 2;
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetTimerAndMode);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ToggleDisplayFlag);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_ToggleLayerFlag);
