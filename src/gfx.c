@@ -69,7 +69,9 @@ s16 ReadUnalignedS16(u8 *ptr) {
 u32 ReadUnalignedU32(u8 *ptr) {
     return ptr[0] + (ptr[1] << 8) + (ptr[2] << 16) + (ptr[3] << 24);
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", ReadUnalignedU32_Alt);
+s32 ReadUnalignedU32_Alt(u8 *ptr) {
+    return ptr[0] + (ptr[1] << 8) + (ptr[2] << 0x10) + (ptr[3] << 0x18);
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", CalcBGScrollMapSize);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateAffineRegisters);
 /**
