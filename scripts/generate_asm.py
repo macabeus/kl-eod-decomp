@@ -181,12 +181,21 @@ def _line_byte_size_strict(stripped: str) -> int:
     return _line_byte_size(stripped)
 
 
-def _compute_addresses_anchored(lines: list[str], start: int) -> list[int]:
+def _compute_addresses_anchored(lines: list[str], start: int,
+                                rom_data: bytes = b"") -> list[int]:
     """ROM address of each line, anchored to embedded label addresses.
 
     Resets the byte counter at ``_XXXXXXXX:`` and ``NAME: @ XXXXXXXX``
     labels.  Uses ``_line_byte_size_strict`` which correctly sizes
     label lines with trailing comments (0 bytes, not 2).
+
+    When *rom_data* is provided, function label anchors are validated
+    against ROM bytes.  Luvdis-generated addresses may include 2 bytes
+    of ``.align 2, 0`` padding that ``non_word_aligned_thumb_func_start``
+    does not emit, or may accumulate drift from data-as-code in
+    preceding functions.  The validation detects and corrects a
+    systematic 2-byte offset by checking known instruction encodings
+    (``push``, ``bx lr``, ``bx rN``, ``pop``, ``bl``) against ROM.
     """
     addrs: list[int] = []
     addr = start
@@ -201,6 +210,63 @@ def _compute_addresses_anchored(lines: list[str], start: int) -> list[int]:
                 addr = int(m.group(1), 16)
         addrs.append(addr)
         addr += _line_byte_size_strict(s)
+
+    if rom_data:
+        addrs = _validate_addresses(lines, addrs, rom_data)
+
+    return addrs
+
+
+# Instruction text → ROM halfword validation rules.
+# Each entry is (text_predicate, rom_validator).
+_ADDR_VALIDATORS = [
+    # push {regs} → 0xB4XX or 0xB5XX
+    (lambda s: s.startswith("push"),
+     lambda hw: (hw >> 8) in (0xB4, 0xB5)),
+    # pop {regs} → 0xBCXX or 0xBDXX
+    (lambda s: s.startswith("pop"),
+     lambda hw: (hw >> 8) in (0xBC, 0xBD)),
+    # bx lr → 0x4770
+    (lambda s: s == "bx lr",
+     lambda hw: hw == 0x4770),
+    # bx rN → 0x47XX
+    (lambda s: s.startswith("bx r"),
+     lambda hw: (hw >> 8) == 0x47),
+    # bl/blx → first halfword 0xF0XX-0xF7XX
+    (lambda s: bool(re.match(r"^blx?\s", s)),
+     lambda hw: 0xF0 <= (hw >> 8) <= 0xF7),
+]
+
+
+def _validate_addresses(lines: list[str], addrs: list[int],
+                        rom_data: bytes) -> list[int]:
+    """Check computed addresses against ROM bytes and correct 2-byte drift.
+
+    Scores the current addresses and addresses shifted by -2 against
+    known instruction encoding patterns.  If -2 scores strictly better,
+    all addresses are shifted.
+    """
+    rom_base = 0x08000000
+
+    def _score(offset: int) -> int:
+        hits = 0
+        for i, line in enumerate(lines):
+            s = line.strip()
+            off = addrs[i] - rom_base + offset
+            if off < 0 or off + 2 > len(rom_data):
+                continue
+            hw = struct.unpack_from("<H", rom_data, off)[0]
+            for text_pred, rom_pred in _ADDR_VALIDATORS:
+                if text_pred(s):
+                    if rom_pred(hw):
+                        hits += 1
+                    break
+        return hits
+
+    score_0 = _score(0)
+    score_m2 = _score(-2)
+    if score_m2 > score_0:
+        return [a - 2 for a in addrs]
     return addrs
 
 
@@ -917,17 +983,127 @@ def _emit_conversions(func_lines, addresses, rom_data, rom_size,
     return result
 
 
+def _convert_trailing_data(func_lines: list[str], addresses: list[int],
+                           rom_data: bytes) -> list[str]:
+    """Convert safe trailing data patterns after the last return.
+
+    Only performs two conservative conversions that do not depend on
+    accurate address computation:
+
+    1. **NOP padding** (``lsls r0, r0, #0x00`` = 0x0000) directly
+       before a data directive → ``.2byte 0x0000``
+    2. **Truncated ``.byte`` literal pools** followed by an instruction
+       that encodes as the high halfword of a GBA pointer → extend to
+       ``.4byte`` using the ROM word at the label's embedded address.
+    """
+    rom_base = 0x08000000
+
+    # Find the last return instruction.
+    last_return = -1
+    for i in range(len(func_lines) - 1, -1, -1):
+        s = func_lines[i].strip()
+        if _TERMINATING_RE.match(s):
+            last_return = i
+            break
+
+    if last_return < 0:
+        return func_lines
+
+    result = list(func_lines)
+    changed = False
+
+    # Check that the trailing section is a literal pool area (not real
+    # code after a conditional branch).  Accept if ANY of:
+    #   - existing data directives (.4byte, .2byte, .byte)
+    #   - known IWRAM high halfword pattern (lsls r0, r0, #0x0C = 0x0300)
+    #   - known I/O high halfword pattern (lsls r0, r0, #0x10 = 0x0400)
+    #   - NOP padding (lsls r0, r0, #0x00 = 0x0000) — alignment before pool
+    has_data_seed = False
+    for i in range(last_return + 1, len(func_lines)):
+        s = func_lines[i].strip()
+        if ".4byte" in s or ".2byte" in s or ".byte" in s:
+            has_data_seed = True
+            break
+        if s in ("lsls r0, r0, #0x0C", "lsls r0, r0, #0x10", _NOP):
+            has_data_seed = True
+            break
+
+    if not has_data_seed:
+        return func_lines
+
+    # Track the nearest address label for .byte extension and for
+    # computing ROM addresses of instruction lines.
+    current_label_addr: int | None = None
+    byte_offset_from_label = 0
+
+    for i in range(last_return + 1, len(func_lines)):
+        s = func_lines[i].strip()
+        line_size = _line_byte_size_strict(s)
+
+        # Track address labels (e.g., _0804BB84:).
+        label_m = _ADDR_LABEL_RE.match(s)
+        if label_m:
+            current_label_addr = int(label_m.group(1), 16)
+            byte_offset_from_label = 0
+            continue
+
+        # --- NOP padding → .2byte 0x0000 ---
+        if s == _NOP:
+            result[i] = "\t.2byte 0x0000\n"
+            changed = True
+            byte_offset_from_label += line_size
+            continue
+
+        # --- 2-byte instruction → .2byte ---
+        if _is_instruction_line(s) and line_size == 2:
+            rom_off = addresses[i] - rom_base
+            if 0 <= rom_off and rom_off + 2 <= len(rom_data):
+                hw = _rom_hw(rom_data, rom_off)
+                result[i] = f"\t.2byte 0x{hw:04X}\n"
+                changed = True
+            byte_offset_from_label += line_size
+            continue
+
+        # --- 4-byte instruction (bl/blx) → .4byte ---
+        if _is_instruction_line(s) and line_size == 4:
+            rom_off = addresses[i] - rom_base
+            if 0 <= rom_off and rom_off + 4 <= len(rom_data):
+                word = _rom_word(rom_data, rom_off)
+                result[i] = f"\t.4byte 0x{word:08X}\n"
+                changed = True
+            byte_offset_from_label += line_size
+            continue
+
+        # --- Truncated .byte → extend to .4byte ---
+        if ".byte" in s and not _is_label_line(s):
+            byte_count = s.split(".byte", 1)[1].count(",") + 1
+            if byte_count == 2 and current_label_addr is not None:
+                rom_off = (current_label_addr + byte_offset_from_label
+                           - rom_base)
+                if 0 <= rom_off and rom_off + 4 <= len(rom_data):
+                    word = _rom_word(rom_data, rom_off)
+                    if _is_gba_pointer(word, len(rom_data)):
+                        result[i] = f"\t.4byte 0x{word:08X}\n"
+                        changed = True
+
+        byte_offset_from_label += line_size
+
+    return result if changed else func_lines
+
+
 def _apply_data_regions(func_lines: list[str], func_addr: int,
                         rom_data: bytes) -> list[str]:
     """Replace data-as-code instruction mnemonics with data directives.
 
-    Three-pass pipeline:
+    Four-pass pipeline:
       1. **High halfwords** — identify ``lsrs #0x20`` (0x08XX) and
          ``lsls r0, r0, #0x0C`` (0x0300) entries.
       2. **Low halfwords** — for each high, find its preceding partner
          and verify the 32-bit ROM word is a valid GBA pointer.
       3. **Consecutive pairs** — handle edge cases where both halfwords
          are in the convert set (both encode as 0x08XX).
+      4. **Trailing data** — convert any remaining instruction lines
+         after the last return to data directives.
 
     Adjacent low+high pairs are emitted as a single ``.4byte``;
     unpaired high halfwords become ``.2byte``.
@@ -936,7 +1112,7 @@ def _apply_data_regions(func_lines: list[str], func_addr: int,
         return func_lines
 
     rom_size = len(rom_data)
-    addresses = _compute_addresses_anchored(func_lines, func_addr)
+    addresses = _compute_addresses_anchored(func_lines, func_addr, rom_data)
 
     # Pass 1: find high halfwords to convert.
     convert = _find_high_halfwords(func_lines, addresses, rom_data, rom_size)
@@ -953,11 +1129,15 @@ def _apply_data_regions(func_lines: list[str], func_addr: int,
     _pair_consecutive_converts(convert, low_to_high, addresses, rom_data,
                                rom_size)
 
-    if not convert:
-        return func_lines
+    if convert:
+        func_lines = _emit_conversions(func_lines, addresses, rom_data,
+                                       rom_size, convert, low_to_high)
+        # Recompute addresses after pointer-pair conversion for trailing pass.
+        addresses = _compute_addresses_anchored(func_lines, func_addr,
+                                                rom_data)
 
-    return _emit_conversions(func_lines, addresses, rom_data, rom_size,
-                             convert, low_to_high)
+    # Pass 4: convert remaining instruction lines after the last return.
+    return _convert_trailing_data(func_lines, addresses, rom_data)
 
 
 def _write_asm_files(merged_entries, libgcc_lines, pre_func):
@@ -1326,6 +1506,25 @@ def _apply_fixups():
     # prologue detection doesn't handle.  It ends with pop {r4, r5}; bx lr.
     _manual_split_leaf(nm_root, "m4a", "FUN_0804fc10.s",
                        "push {r4, r5}", 0x0804FE10, "FUN_0804fe10")
+
+    # DeadCode_0804bb86 is the high halfword of FreeGfxBuffer's literal
+    # pool (0x0300, the upper 16 bits of 0x030034A0).  FreeGfxBuffer.s
+    # already emits the full .4byte, so this "function" must be an empty
+    # stub — using thumb_func_start would force a $t mapping symbol in
+    # the middle of the literal pool data, causing objdiff to disassemble
+    # the data as Thumb instructions.
+    # At this stage, renames haven't been applied yet → use original name.
+    # The stub must still define the .global symbol because the linker
+    # script references it, but emit no code/data bytes (FreeGfxBuffer's
+    # .4byte already covers the literal pool word).
+    dc_path = os.path.join(nm_root, "gfx", "FUN_0804bb86.s")
+    if os.path.exists(dc_path):
+        with open(dc_path, "w") as f:
+            f.write("\t.global FUN_0804bb86\n"
+                    "FUN_0804bb86:\n"
+                    "@ Absorbed into FreeGfxBuffer literal pool"
+                    " (.4byte 0x030034A0)\n")
+        print("  Emptied FUN_0804bb86.s (absorbed into FreeGfxBuffer literal pool)")
 
     # Add .global for labels referenced across compilation units
     for label in ("_080482B4", "_0804831C"):
