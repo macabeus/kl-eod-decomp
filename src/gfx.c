@@ -475,7 +475,9 @@ void StreamCmd_StopSound(void) {
     StopSoundEffects();
     gStreamPtr += 2;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_Nop3);
+void StreamCmd_Nop3(void) {
+    gStreamPtr += 3;
+}
 /**
  * StreamCmd_StopMusicAndDisableIRQ: stops all music and disables interrupts.
  * Calls m4aMPlayAllStop + m4aSoundVSyncOff, advances by 2.
