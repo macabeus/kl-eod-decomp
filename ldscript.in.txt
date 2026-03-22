@@ -13,6 +13,8 @@ gCallbackStateArray = 0x03003510;
 gOamBuffer0 = 0x03002920;
 gOamBuffer1 = 0x0300293C;
 gOamBuffer6 = 0x03002A8C;
+gEepromTimer = 0x0300037A;
+gEepromReady = 0x0300037C;
 
 SECTIONS {
     . = 0x8000000;

@@ -3,7 +3,21 @@
 
 INCLUDE_ASM("asm/nonmatchings/util", SoftReset);
 INCLUDE_ASM("asm/nonmatchings/util", FUN_0805146c);
-INCLUDE_ASM("asm/nonmatchings/util", EepromTimerCallback);
+extern vu16 gEepromTimer;
+extern vu8 gEepromReady;
+
+void EepromTimerCallback(void) {
+    u32 val;
+    if (gEepromTimer == 0) {
+        return;
+    }
+    val = gEepromTimer - 1;
+    gEepromTimer = val;
+    if (val << 16) {
+        return;
+    }
+    gEepromReady = 1;
+}
 INCLUDE_ASM("asm/nonmatchings/util", FUN_080514d4);
 INCLUDE_ASM("asm/nonmatchings/util", EepromBeginTransfer);
 INCLUDE_ASM("asm/nonmatchings/util", EepromEndTransfer);
