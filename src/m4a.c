@@ -148,7 +148,9 @@ void StreamCmd_SetSoundFreqs(void) {
 
     *streamRef += 6;
 }
-INCLUDE_ASM("asm/nonmatchings/m4a", StreamCmd_AdvanceStream);
+void StreamCmd_AdvanceStream(void) {
+    gStreamPtr += 3;
+}
 /*
  * MidiProcessEvent: dispatch a MIDI note or control event.
  * Processes a single event from the track bytecode stream,
