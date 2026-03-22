@@ -1,4 +1,6 @@
 /* Data symbols: extern declarations in globals.h resolve to these addresses. */
+gSpriteRenderPtr = 0x030051DC;
+gSpriteDataTable = 0x08189E84;
 gMPlayTable = 0x08118AB4;
 gSongTable = 0x08118AE4;
 gEntityDataTable = 0x081168E8;

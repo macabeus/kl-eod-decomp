@@ -287,7 +287,9 @@ void StreamCmd_DmaSpriteData(void) {
     gStreamPtr = ptr + 4;
     DmaSpriteToObjVram(a, b);
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", SetSpriteTableFromIndex);
+void SetSpriteTableFromIndex(u32 arg0) {
+    gSpriteRenderPtr = gSpriteDataTable[arg0];
+}
 /*
  * Reads a command byte from the data stream and processes it via SetSpriteTableFromIndex.
  * Byte[2] is the command argument. Advances the stream pointer by 3.

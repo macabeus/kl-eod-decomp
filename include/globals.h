@@ -223,13 +223,19 @@ extern u32 gCallbackStateArray[];
 
 /* Sprite attribute table for HUD/dialog rendering.
  * Array of 8-byte OAM-like entries at 0x03004800. */
-#define gOamBuffer               ((u8 *)0x03004800)
+#define gOamBuffer       ((u8 *)0x03004800)
 
 /* Current sprite/OAM slot index for HUD. */
-#define gSpriteSlotIndex         (*(u16 *)0x0300466C)
+#define gSpriteSlotIndex (*(u16 *)0x0300466C)
 
 /* Sprite draw count / limit. */
-#define gSpriteDrawCount         (*(u16 *)0x030051DC)
+#define gSpriteDrawCount (*(u16 *)0x030051DC)
+
+/* Sprite data table pointer (u32 stored at 0x030051DC by SetSpriteTableFromIndex). */
+extern u32 gSpriteRenderPtr;
+
+/* ROM sprite data lookup table (array of u32 pointers). */
+extern const u32 gSpriteDataTable[];
 
 /* Display configuration flags (byte). */
 #define gDisplayMode             ((u8 *)0x03000810)
