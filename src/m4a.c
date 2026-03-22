@@ -595,7 +595,19 @@ void m4aSoundVSyncOff(void) {
  *   30 lines, leaf function
  *   refs: REG_SOUNDCNT_H (0x040000C6)
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", m4aSoundVSyncOn);
+void m4aSoundVSyncOn(void) {
+    u32 *info = *(u32 **)0x03007FF0;
+    u32 magic = info[0];
+    u8 scratch;
+    if (magic == SAPPY_MAGIC)
+        return;
+    *(vu16 *)0x040000C6 = 0xB600;
+    *(vu16 *)0x040000D2 = 0xB600;
+    scratch = ((vu8 *)info)[0x04];
+    scratch = 0;
+    ((u8 *)info)[0x04] = scratch;
+    info[0] = magic - 10;
+}
 /*
  * VBlankSoundCallback: VBlank-triggered sound update routine.
  * Called by the VBlank interrupt handler to process pending
