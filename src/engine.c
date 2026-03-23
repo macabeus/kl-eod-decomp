@@ -25,7 +25,37 @@ void UpdateFadeEffect(void) {
 }
 INCLUDE_ASM("asm/nonmatchings/engine", HBlankScrollUpdate);
 INCLUDE_ASM("asm/nonmatchings/engine", UpdateAffineBGParams);
-INCLUDE_ASM("asm/nonmatchings/engine", UpdateWindowCircleEffect);
+/**
+ * UpdateWindowCircleEffect: compute circle window bounds for iris transition.
+ *
+ * Reads the current scanline from REG_VCOUNT, computes left/right bounds
+ * of a circular window using BiosSquareRoot, and writes to REG_WIN0H.
+ * Used for iris-in/out screen transitions.
+ */
+void UpdateWindowCircleEffect(void) {
+    u16 vcount = *(volatile u16 *)0x04000006;
+    u32 radius = *(u32 *)0x03005488;
+    u32 half_r = radius >> 1;
+    s32 y = vcount - half_r;
+    s32 y_adj = y + 12;
+    s32 x_span;
+    u32 val;
+    u32 sqr;
+    u32 hw;
+    x_span = 0xE4 - y;
+    x_span -= radius;
+    val = (u32)(x_span * y_adj) << 2;
+    sqr = BiosSquareRoot(val);
+    hw = (u8)sqr >> 1;
+    if (hw <= 0x78) {
+        u32 winAddr = 0x04000042;
+        volatile u16 *win;
+        asm("" : "=r"(win) : "0"(winAddr));
+        *win = ((0x78 - hw) << 8) | (hw + 0x78);
+    } else {
+        *(volatile u16 *)0x04000042 = 0;
+    }
+}
 INCLUDE_ASM("asm/nonmatchings/engine", UpdateBGScrollWithWave);
 INCLUDE_ASM("asm/nonmatchings/engine", WaitVBlankAndClearMosaic);
 INCLUDE_ASM("asm/nonmatchings/engine", AcknowledgeInterrupt);
