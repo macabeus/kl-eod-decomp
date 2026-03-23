@@ -385,10 +385,40 @@ INCLUDE_ASM("asm/nonmatchings/gfx", DispatchLevelLayerSetup);
  * gBGLayerState[layer].scrollX/Y. Advances stream by 7.
  */
 /**
- * StreamCmd_SetBGScroll: sets BG scroll from stream data.
- * byte[2]=layer, bytes[3-4]=scrollX, bytes[5-6]=scrollY (shifted <<4).
+ * StreamCmd_SetBGScroll: set BG layer scroll from stream data.
+ *
+ * Reads scrollX (bytes[3-4]) and scrollY (bytes[5-6]) via ReadUnalignedU16,
+ * shifts each left 4 for subpixel precision, stores to the BG layer state
+ * table indexed by byte[2]. Advances stream by 7.
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGScroll);
+void StreamCmd_SetBGScroll(void) {
+    u32 spAddr = 0x03004D84;
+    register u8 **sp asm("r4");
+    register u16 scrollX asm("r3");
+    u32 tblAddr = 0x03003430;
+    register u8 *tbl asm("r5");
+    u8 *p;
+    u8 layer;
+    u32 off;
+
+    asm("" : "=r"(sp) : "0"(spAddr));
+    scrollX = ReadUnalignedU16(*sp + 3);
+    asm("" : "=r"(tbl) : "0"(tblAddr));
+    p = *sp;
+    layer = p[2];
+    off = (u32)(layer * 7) << 2;
+    off += (u32)tbl;
+    *(u16 *)(off + 8) = scrollX << 4;
+    {
+        u16 scrollY = ReadUnalignedU16(p + 5);
+        u8 *p2 = *sp;
+        u8 layer2 = p2[2];
+        u32 off2 = (u32)(layer2 * 7) << 2;
+        off2 += (u32)tbl;
+        *(u16 *)(off2 + 10) = scrollY << 4;
+        *sp = p2 + 7;
+    }
+}
 /*
  * Reads a palette color entry from a data stream and writes it to BG palette RAM.
  * The stream at *0x03004D84 is a packed format: byte[2] is the palette index,
