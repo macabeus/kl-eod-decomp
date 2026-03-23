@@ -63,9 +63,13 @@ Each source file in `src/` represents a module defined in `klonoa-eod-decomp.tom
 
 - **Check GitHub issues before decompiling.** Reference issues in commits/PRs. Post findings (techniques, blockers) on relevant issues when a match succeeds or fails.
 
+- **Issue closing comments must reference the fix commit.** When closing an issue because its function was decompiled or bug was fixed, the comment must cite the specific commit that introduced the fix (e.g., "Fixed in abc1234").
+
 - **PRs use feature branches.** Create a branch from `main`, push, open PR against upstream. Never push work directly to `main`. Delete branches after merge.
 
 - **Update the website when learning about architecture.** When decompilation reveals how a subsystem works, update the gh-pages documentation (graphics-engine.html, game-engine.html, sound.html, matching.html, etc.).
+
+- **Always push gh-pages immediately.** Every commit to the gh-pages branch must be pushed right away (`git push origin gh-pages`) so the website goes live without delay.
 
 - **"decomp more" means:** look for related functions near already-matched ones, assign semantic symbols, write docstrings, try matching with known techniques.
 

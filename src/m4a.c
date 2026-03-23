@@ -275,12 +275,53 @@ INCLUDE_ASM("asm/nonmatchings/m4a", TrackStop);
  *   calls: PlaySoundWithContext_D8/DC, CgbModVol
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MPlayContinue);
-/*
- * SoundContextRef: get a reference to the current sound context.
- * Returns the active MusicPlayer context for the caller.
- *   39 lines, calls SoundChannelRelease
+/**
+ * SoundContextRef: release all active sound channels on a track.
+ *
+ * Iterates the linked list of sound channels starting at track[0x20].
+ * For each channel with a nonzero status byte, checks if the type
+ * field (byte offset 1) has any of the low 3 bits set. If so, calls
+ * SoundChannelRelease via the soundInfo callback table. Clears each
+ * channel's status byte and callback pointer (offset 0x2C), then NULLs
+ * the track's channel list head.
+ *
+ * @param unused   Unused (register r0, not referenced)
+ * @param track    Pointer to the MusicPlayerTrack structure
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", SoundContextRef);
+void SoundContextRef(u32 unused, u8 *track) {
+    u8 *chan;
+    u8 zero;
+    register u8 st asm("r1") = track[0];
+    register u32 m asm("r0") = 0x80;
+    st &= m;
+    if (!st)
+        goto end;
+    chan = *(u8 **)(track + 0x20);
+    if (!chan)
+        goto store_null;
+    zero = 0;
+    do {
+        if (chan[0]) {
+            register u32 type asm("r0") = chan[1];
+            register u32 mask asm("r3") = 7;
+            type &= mask;
+            if (type) {
+                u32 addr = 0x03007FF0;
+                asm("" : "=r"(mask) : "0"(addr));
+                mask = *(volatile u32 *)mask;
+                mask = *(volatile u32 *)(mask + 0x2C);
+                SoundChannelRelease();
+            }
+            asm("" : : "r"(type));
+            chan[0] = zero;
+        }
+        *(u32 *)(chan + 0x2C) = zero;
+        chan = *(u8 **)(chan + 0x34);
+    } while (chan);
+store_null:
+    *(u8 **)(track + 0x20) = chan;
+end:;
+}
 /*
  * MPlayStop_Channel: stop playback on a single music channel.
  * Silences one channel without affecting other active tracks.
