@@ -283,24 +283,54 @@
         </ul>
         <h2>Decompilation Status</h2>
 
-        <p>Matched m4a functions (byte-exact C reimplementations):</p>
+        <p>51 of 113 m4a/sound functions matched (byte-exact C reimplementations). Recent progress includes
+        major breakthroughs in the core MP2000 engine functions using register pinning via <code>asm</code>
+        barriers and the <code>-ftst</code> compiler flag.</p>
+
+        <h3>Core Engine (matched)</h3>
         <ul>
+            <li><strong>SoundInfoInit</strong> &mdash; initialize the SoundInfo struct and DMA channels</li>
+            <li><strong>SoundInit</strong> &mdash; top-level sound initialization wrapper</li>
+            <li><strong>SoundClear</strong> &mdash; reset all 12 channel status bytes + process channels</li>
+            <li><strong>FreeSoundStruct</strong> &mdash; free sound info struct</li>
+            <li><strong>m4aSoundVSyncOff</strong> &mdash; disable sound VSync processing</li>
+            <li><strong>m4aSoundVSyncOn</strong> &mdash; enable sound VSync processing</li>
             <li><strong>MPlayStop</strong> (m4aMPlayStop) &mdash; halt playback on a music player</li>
             <li><strong>m4aSongNumStart</strong> &mdash; initialize sound scene from song table</li>
             <li><strong>m4aSongNumStop</strong> &mdash; stop a song if currently playing</li>
             <li><strong>m4aMPlayCommand</strong> &mdash; stop player for a matching song</li>
-            <li><strong>FreeSoundStruct</strong> &mdash; free sound info struct</li>
-            <li><strong>SoundInit</strong> &mdash; top-level sound initialization wrapper</li>
-            <li><strong>m4aSoundVSyncOff</strong> &mdash; disable sound VSync processing</li>
-            <li><strong>StopSoundChannel</strong> &mdash; stop a single sound channel</li>
-            <li><strong>PlaySoundWithContext_D8/DC</strong> &mdash; trigger sound effect playback</li>
-            <li><strong>SoundCommand_6450</strong> &mdash; sound command dispatch</li>
+        </ul>
+
+        <h3>Playback &amp; Sequencer (matched)</h3>
+        <ul>
             <li><strong>MPlayMain_SetAndProcess</strong> &mdash; store to gSoundInfo + call MidiProcessEvent</li>
+            <li><strong>VoiceLookupAndApply</strong> &mdash; voice table lookup with TST-based flag checks</li>
+            <li><strong>ply_voice</strong> &mdash; process voice change command</li>
+            <li><strong>ply_bend</strong> &mdash; process pitch bend</li>
+            <li><strong>ply_bendr</strong> &mdash; process pitch bend range</li>
+            <li><strong>ply_lfos</strong> &mdash; set LFO speed</li>
+            <li><strong>ply_lfodl</strong> &mdash; set LFO delay</li>
+            <li><strong>ply_mod</strong> &mdash; process modulation</li>
+            <li><strong>StreamCmd_AdvanceStream</strong> &mdash; advance the sound stream pointer</li>
+        </ul>
+
+        <h3>Stream Commands &amp; Dispatch (matched)</h3>
+        <ul>
             <li><strong>SoundCmd_Dispatch</strong> &mdash; read command byte, dispatch via ROM table</li>
             <li><strong>StreamCmd_StopSoundAndSync</strong> &mdash; stop sound, sync freq to BG scroll</li>
             <li><strong>StreamCmd_SetSoundFreqs</strong> &mdash; read two u16 frequencies from stream</li>
+            <li><strong>StreamCmd_StopSound</strong> &mdash; stop sound playback</li>
+            <li><strong>StreamCmd_Nop3</strong> &mdash; no-op stream command</li>
+            <li><strong>StreamCmd_ClearRenderMode</strong> &mdash; clear the render mode flag</li>
+            <li><strong>StopSoundChannel</strong> &mdash; stop a single sound channel</li>
+            <li><strong>PlaySoundWithContext_D8/DC</strong> &mdash; trigger sound effect playback</li>
             <li><strong>FreeAllDecompBuffers</strong> &mdash; free 6 decomp buffers + stop 4 music channels</li>
-            <li><strong>SoundClear</strong> &mdash; reset all 12 channel status bytes + process channels</li>
+        </ul>
+
+        <h3>Utility (matched)</h3>
+        <ul>
+            <li><strong>EepromTimerCallback</strong> &mdash; EEPROM access timer handler</li>
+            <li><strong>SetSpriteTableFromIndex</strong> &mdash; select sprite table by index</li>
         </ul>
 
         <h2>pokeemerald Alignment</h2>

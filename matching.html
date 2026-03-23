@@ -75,23 +75,24 @@
         <h1>Matching Techniques &amp; Blockers</h1>
         <p>
             This page documents everything we've learned about producing byte-exact C matches
-            with <strong>agbcc</strong> (a GCC 2.95 fork targeting ARM7TDMI Thumb). Of 476 functions,
-            66 are fully matched. The remaining 410 are understood (all 476 have semantic names and docstrings)
+            with <strong>agbcc</strong> (a GCC 2.95 fork targeting ARM7TDMI Thumb). Of 522 functions,
+            133 are fully matched (25.5%). The remaining 389 are understood (470+ have semantic names and docstrings)
             but blocked by compiler code generation differences. Additionally, 61 IWRAM globals and 59 ROM data tables have been identified and named.
         </p>
 
         <!-- ===== Current State ===== -->
         <h2>Current State by Module</h2>
         <table class="count-table">
-            <tr><td>system.c</td><td>2 of 10 matched</td><td>(FixedMul8, FreeAllDecompBuffers, ...)</td></tr>
-            <tr><td>math.c</td><td>4 of 7 matched</td><td>(all non-word-aligned or leaf)</td></tr>
+            <tr><td>system.c</td><td>6 of 12 matched</td><td>(FixedMul8, FreeAllDecompBuffers, ...)</td></tr>
+            <tr><td>math.c</td><td>8 of 9 matched</td><td>(FixedDivShift8, FixedReciprocal, FixedMul4, FixedDivUnit, ...)</td></tr>
             <tr><td>engine.c</td><td>4 of 27 matched</td><td>(OAM clears, video state, fade effect, ...)</td></tr>
-            <tr><td>code_0.c</td><td>0 of 23 matched</td><td>(large rendering functions)</td></tr>
-            <tr><td>code_1.c</td><td>2 of 101 matched</td><td>(TransitionToWorldMap, TransitionSoftReset, ...)</td></tr>
+            <tr><td>code_0.c</td><td>0 of 24 matched</td><td>(large rendering functions)</td></tr>
+            <tr><td>code_1.c</td><td>8 of 109 matched</td><td>(TransitionToWorldMap, TransitionSoftReset, ...)</td></tr>
             <tr><td>code_3.c</td><td>7 of 88 matched</td><td>(IsSelectButtonPressed, GetEntityLookupData)</td></tr>
-            <tr><td>gfx.c</td><td>26 of 113 matched</td><td>(decompression, stream commands, callbacks, ...)</td></tr>
-            <tr><td>m4a.c</td><td>16 of 93 matched</td><td>(MPlayStop, InitSceneState, stream commands, ...)</td></tr>
-            <tr><td>util.c</td><td>0 of 9 matched</td><td>(all blocked by loop/increment patterns)</td></tr>
+            <tr><td>gfx.c</td><td>43 of 124 matched</td><td>(decompression, stream commands, callbacks, sprites, ...)</td></tr>
+            <tr><td>m4a.c + m4a_1.c</td><td>51 of 113 matched</td><td>(SoundInfoInit, VoiceLookupAndApply, ply_*, stream commands, ...)</td></tr>
+            <tr><td>syscalls.c</td><td>5 of 5 matched</td><td>(all BIOS call wrappers)</td></tr>
+            <tr><td>util.c</td><td>1 of 11 matched</td><td>(EepromTimerCallback; rest blocked by loop patterns)</td></tr>
         </table>
 
         <!-- ===== Solved Techniques ===== -->
@@ -232,10 +233,42 @@ u32 MPlayMain_SetAndProcess(u32 val) {
             <p><strong>Matched:</strong> All leaf functions without callee-saved registers (ReadUnalignedU16, etc.).</p>
         </div>
 
+        <div class="technique-card">
+            <h3>8. Register Pinning via <code>asm</code> Calls <span class="tag-solved">SOLVED</span></h3>
+            <p>
+                <strong>Problem:</strong> agbcc's register allocator chooses different registers than the original
+                for struct member access and multi-argument function calls. This causes widespread mismatches.
+            </p>
+            <p>
+                <strong>Solution:</strong> Use <code>asm("")</code> barriers to force the compiler to materialize
+                values in specific registers at specific points. This pins the register allocation without
+                changing the generated instructions:
+            </p>
+            <pre><code>register u32 val asm("r4") = someExpr;
+asm("" : "+r"(val));  // force r4 to hold val here
+// subsequent code uses r4 as the original did</code></pre>
+            <p><strong>Matched:</strong> Many m4a functions including SoundInfoInit, ply_voice, ply_bend,
+            ply_bendr, ply_lfos, ply_lfodl, ply_mod, and numerous gfx stream commands.</p>
+        </div>
+
+        <div class="technique-card">
+            <h3>9. <code>-ftst</code> Compiler Flag <span class="tag-solved">SOLVED</span></h3>
+            <p>
+                <strong>Problem:</strong> The original ROM uses <code>tst Rn, Rm</code> (test without storing result)
+                for bitflag checks. agbcc generates <code>ands Rd, Rn</code> + <code>cmp Rd, #0</code> instead.
+            </p>
+            <p>
+                <strong>Solution:</strong> A custom <code>-ftst</code> flag was added to the Dream-Atelier agbcc fork.
+                It adds a <code>*andsi3_tst</code> combiner pattern in <code>thumb.md</code> that merges
+                <code>and + cmp #0</code> into <code>tst</code>. Enabled per-compilation-unit for m4a_1.c.
+            </p>
+            <p><strong>Matched:</strong> VoiceLookupAndApply and other m4a functions that check bit flags.</p>
+        </div>
+
         <!-- ===== Remaining Blockers ===== -->
         <h2>Remaining Blockers</h2>
         <p>
-            These patterns prevent matching the remaining ~410 functions. Each affects a different
+            These patterns prevent matching the remaining ~389 functions. Each affects a different
             subset of the codebase. Solving any one of them would unlock dozens of new matches.
         </p>
 
@@ -265,7 +298,7 @@ beq skip</code></pre>
                 <strong>Affected:</strong> SoundContextRef, VoiceLookupAndApply, MPlayContinue,
                 many entity behavior functions, all functions that check bit flags.
             </p>
-            <p><strong>Status:</strong> No known workaround. May require agbcc compiler modification.</p>
+            <p><strong>Status:</strong> Partially solved by <code>-ftst</code> flag (see Technique 9). Remaining issue: original also uses <code>ands; beq</code> (no redundant cmp) which agbcc cannot produce.</p>
         </div>
 
         <div class="blocker-card">
@@ -409,20 +442,20 @@ DeadCode:             ; now 2 bytes later!
 
         <!-- ===== Breakdown ===== -->
         <h2>Function Breakdown</h2>
-        <p>Approximate categorization of all 476 functions:</p>
+        <p>Approximate categorization of all 522 functions:</p>
         <table>
             <thead>
                 <tr><th>Category</th><th>Count</th><th>Status</th></tr>
             </thead>
             <tbody>
-                <tr><td>Matched to C</td><td>66</td><td class="tag-solved">Done</td></tr>
+                <tr><td>Matched to C</td><td>133</td><td class="tag-solved">Done</td></tr>
                 <tr><td>Blocked by <code>tst</code> vs <code>ands</code></td><td>~60</td><td class="tag-blocker">Needs compiler fix</td></tr>
                 <tr><td>Blocked by leaf prologue</td><td>~40</td><td class="tag-blocker">Needs per-function flags</td></tr>
                 <tr><td>Non-word-aligned</td><td>~20</td><td class="tag-blocker">Impossible from C</td></tr>
                 <tr><td>Hand-written asm</td><td>~15</td><td class="tag-blocker">Impossible from C</td></tr>
                 <tr><td>Shared literal pools</td><td>~10</td><td class="tag-blocker">Needs paired decompilation</td></tr>
                 <tr><td>Register allocation</td><td>~100+</td><td class="tag-partial">Case-by-case, some solvable</td></tr>
-                <tr><td>Large/complex functions</td><td>~166</td><td class="tag-partial">Need more investigation</td></tr>
+                <tr><td>Large/complex functions</td><td>~144</td><td class="tag-partial">Need more investigation</td></tr>
             </tbody>
         </table>
         <p>
