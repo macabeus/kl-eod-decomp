@@ -189,10 +189,36 @@ void FreeGfxBuffer(void) {
 INCLUDE_ASM("asm/nonmatchings/gfx", DeadCode_0804bb86);
 
 /**
- * AllocAndClearBuffer_52A4: allocates and zero-fills a 0x480-byte buffer.
- * Stores pointer in gBuffer_52A4, DMA3-fills with zeros.
+ * AllocAndClearBuffer_52A4: allocate and DMA-fill a 1152-byte buffer.
+ *
+ * Allocates 0x480 bytes (0x90 << 3) via thunk_FUN_080001e0, stores the
+ * pointer at gBuffer_52A4, then DMA3-fills with zero using a stack-local
+ * halfword as fill source.
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", AllocAndClearBuffer_52A4);
+void AllocAndClearBuffer_52A4(void) {
+    u16 zero_src;
+    u32 addr = 0x030052A4;
+    register u32 *bufPtr asm("r4");
+    u32 *buf;
+    asm("" : "=r"(bufPtr) : "0"(addr));
+    buf = (u32 *)thunk_FUN_080001e0(0x90 << 3, 0);
+    *bufPtr = (u32)buf;
+    {
+        u32 dma_addr = 0x040000D4;
+        register volatile u32 *dma3 asm("r1");
+        u32 sp_ptr = (u32)&zero_src;
+        zero_src = 0;
+        asm("" : "=r"(dma3) : "0"(dma_addr));
+        dma3[0] = sp_ptr;
+        dma3[1] = (u32)buf;
+        {
+            u32 ctrl = 0x81000240;
+            asm("" : "=r"(ctrl) : "0"(ctrl));
+            dma3[2] = ctrl;
+            dma3[2];
+        }
+    }
+}
 /** FreeBuffer_52A4: frees the memory buffer at gBuffer_52A4. */
 void FreeBuffer_52A4(void) {
     thunk_FUN_0800020c(gBuffer_52A4);
