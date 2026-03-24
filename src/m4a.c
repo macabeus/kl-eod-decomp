@@ -978,16 +978,104 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MidiUtilConvert);
  * write value to track[0x17] for each matching track bit, and call
  * MidiUtilConvert when value is zero.
  */
-/*
- * MidiCommandEncode1: iterate active tracks, write value to track[0x17].
- * Scheduling mismatch: movs r0, #0x80 vs ldrb order. Needs further tuning.
- */
-INCLUDE_ASM("asm/nonmatchings/m4a", MidiCommandEncode1);
+void MidiCommandEncode1(u32 *player, u16 trackBits, u8 value) {
+    u32 ident;
+    s32 numTracks;
+    u8 *track;
+    u32 mask;
+    u8 val;
+
+    ident = player[0x34 / 4];
+    if (ident != SAPPY_MAGIC)
+        return;
+
+    player[0x34 / 4] = ident + 1;
+
+    numTracks = (s32)(u8)((u8 *)player)[0x08];
+    track = (u8 *)player[0x2C / 4];
+    mask = 1;
+
+    if (numTracks <= 0)
+        goto done;
+
+    val = value;
+
+    while (numTracks > 0) {
+        if (trackBits & mask) {
+            register u32 test asm("r0") = 0x80;
+            register u8 status asm("r1");
+            asm("" : "+r"(test));
+            status = track[0x00];
+            test &= status;
+            if (test) {
+                track[0x17] = value;
+                {
+                    register u8 v asm("r1") = val;
+                    if (v == 0) {
+                        MidiUtilConvert(track);
+                    }
+                }
+            }
+        }
+        numTracks--;
+        track += 0x50;
+        mask <<= 1;
+    }
+
+done:
+    player[0x34 / 4] = SAPPY_MAGIC;
+}
 /**
  * MidiCommandEncode2: same as MidiCommandEncode1 but writes to
  * track[0x19] instead of track[0x17].
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", MidiCommandEncode2);
+void MidiCommandEncode2(u32 *player, u16 trackBits, u8 value) {
+    u32 ident;
+    s32 numTracks;
+    u8 *track;
+    u32 mask;
+    u8 val;
+
+    ident = player[0x34 / 4];
+    if (ident != SAPPY_MAGIC)
+        return;
+
+    player[0x34 / 4] = ident + 1;
+
+    numTracks = (s32)(u8)((u8 *)player)[0x08];
+    track = (u8 *)player[0x2C / 4];
+    mask = 1;
+
+    if (numTracks <= 0)
+        goto done;
+
+    val = value;
+
+    while (numTracks > 0) {
+        if (trackBits & mask) {
+            register u32 test asm("r0") = 0x80;
+            register u8 status asm("r1");
+            asm("" : "+r"(test));
+            status = track[0x00];
+            test &= status;
+            if (test) {
+                track[0x19] = value;
+                {
+                    register u8 v asm("r1") = val;
+                    if (v == 0) {
+                        MidiUtilConvert(track);
+                    }
+                }
+            }
+        }
+        numTracks--;
+        track += 0x50;
+        mask <<= 1;
+    }
+
+done:
+    player[0x34 / 4] = SAPPY_MAGIC;
+}
 /*
  * MPlayCommandDispatch: music player command dispatcher.
  * Reads a command byte from the track stream and dispatches to the
