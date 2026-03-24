@@ -377,7 +377,31 @@ void SoundInit(void) {
  * Looks up the song from gSongTable, finds the assigned music player
  * from gMPlayTable, then calls MPlayStart to begin playback.
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", m4aSongNumStart);
+void m4aSongNumStart(u16 idx) {
+    u32 mplayAddr = 0x08118AB4;
+    u32 songAddr = 0x08118AE4;
+    register u8 *mplay asm("r2");
+    register u8 *songs asm("r1");
+    u32 songOff;
+    u8 *song;
+    u16 playerIdx;
+    u32 off;
+
+    asm("" : "=r"(mplay) : "0"(mplayAddr));
+    asm("" : "=r"(songs) : "0"(songAddr));
+    songOff = (u32)idx << 3;
+    songOff += (u32)songs;
+    song = (u8 *)songOff;
+    playerIdx = *(u16 *)(song + 4);
+    off = (u32)playerIdx * 2 + playerIdx;
+    off <<= 2;
+    off += (u32)mplay;
+    {
+        u32 player = *(u32 *)off;
+        u32 header = *(u32 *)song;
+        MPlayStart(player, header);
+    }
+}
 /*
  * m4aSongNumContinue: continue or queue a music track.
  * If the same song is already playing, does nothing.
@@ -399,14 +423,60 @@ INCLUDE_ASM("asm/nonmatchings/m4a", m4aSongNumLoad);
  * Looks up the song and its assigned player; if the player is currently
  * playing this song's header, calls MPlayStop to halt playback.
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", m4aMPlayCommand);
+void m4aMPlayCommand(u16 idx) {
+    u32 mplayAddr = 0x08118AB4;
+    u32 songAddr = 0x08118AE4;
+    register u8 *mplay asm("r2");
+    register u8 *songs asm("r1");
+    u32 songOff;
+    u8 *song;
+    u16 playerIdx;
+    u32 off;
+    u32 *player;
+
+    asm("" : "=r"(mplay) : "0"(mplayAddr));
+    asm("" : "=r"(songs) : "0"(songAddr));
+    songOff = (u32)idx << 3;
+    songOff += (u32)songs;
+    song = (u8 *)songOff;
+    playerIdx = *(u16 *)(song + 4);
+    off = (u32)playerIdx * 2 + playerIdx;
+    off <<= 2;
+    off += (u32)mplay;
+    player = *(u32 **)off;
+    if (player[0] == *(u32 *)song)
+        MPlayStop(player);
+}
 /**
  * m4aSongNumStop: stops the given song if it's currently playing.
  *
  * Looks up the song and its player; if the player's current header
  * matches, calls MPlayChannelReset to stop and release channels.
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", m4aSongNumStop);
+void m4aSongNumStop(u16 idx) {
+    u32 mplayAddr = 0x08118AB4;
+    u32 songAddr = 0x08118AE4;
+    register u8 *mplay asm("r2");
+    register u8 *songs asm("r1");
+    u32 songOff;
+    u8 *song;
+    u16 playerIdx;
+    u32 off;
+    u32 *player;
+
+    asm("" : "=r"(mplay) : "0"(mplayAddr));
+    asm("" : "=r"(songs) : "0"(songAddr));
+    songOff = (u32)idx << 3;
+    songOff += (u32)songs;
+    song = (u8 *)songOff;
+    playerIdx = *(u16 *)(song + 4);
+    off = (u32)playerIdx * 2 + playerIdx;
+    off <<= 2;
+    off += (u32)mplay;
+    player = *(u32 **)off;
+    if (player[0] == *(u32 *)song)
+        MPlayChannelReset(player);
+}
 /*
  * m4aSoundVSync: VBlank sound update — called every frame.
  * Loops over 4 sound channels, calling MPlayChannelUpdate for each.
@@ -907,6 +977,10 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MidiUtilConvert);
  * MidiCommandEncode1: iterate active tracks in a MusicPlayerInfo,
  * write value to track[0x17] for each matching track bit, and call
  * MidiUtilConvert when value is zero.
+ */
+/*
+ * MidiCommandEncode1: iterate active tracks, write value to track[0x17].
+ * Scheduling mismatch: movs r0, #0x80 vs ldrb order. Needs further tuning.
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiCommandEncode1);
 /**
