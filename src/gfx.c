@@ -383,11 +383,71 @@ void ShutdownGfxSubsystem(void) {
     m4aMPlayAllStop();
 }
 /**
- * InitGfxStreamState: allocates stream buffer, clears OAM, resets cursors.
- * Alloc 0x100 bytes for gGfxStreamBuffer, DMA-zero, clear OAM shadow,
- * DMA OAM to hardware, set object count to 13, init write cursors.
+ * InitGfxStreamState: allocate stream buffer, clear OAM, reset state.
+ *
+ * Allocates 0x100 bytes for gGfxStreamBuffer, DMA-fills with zero,
+ * calls ClearVideoState, DMA-copies OAM shadow to hardware OAM,
+ * sets stream mode to 0x0D, initializes two write cursor pointers.
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", InitGfxStreamState);
+void InitGfxStreamState(void) {
+    u16 zero_src;
+    u32 bufAddr = 0x030007C8;
+    register u32 *bufPtr asm("r4");
+    u32 *buf;
+    asm("" : "=r"(bufPtr) : "0"(bufAddr));
+    buf = (u32 *)thunk_FUN_080001e0(0x80 << 1, 0);
+    *bufPtr = (u32)buf;
+    {
+        u32 dmaAddr = 0x040000D4;
+        register volatile u32 *dma asm("r4");
+        u32 sp_ptr = (u32)&zero_src;
+        zero_src = 0;
+        asm("" : "=r"(dma) : "0"(dmaAddr));
+        dma[0] = sp_ptr;
+        dma[1] = (u32)buf;
+        {
+            u32 ctrl = 0x81000080;
+            asm("" : "=r"(ctrl) : "0"(ctrl));
+            dma[2] = ctrl;
+            dma[2];
+        }
+        ClearVideoState();
+        {
+            u32 oamSrc = 0x03004800;
+            u32 ctrl2 = 0x84000100;
+            asm("" : "=r"(oamSrc) : "0"(oamSrc));
+            dma[0] = oamSrc;
+            dma[1] = 0xE0 << 19;
+            asm("" : "=r"(ctrl2) : "0"(ctrl2));
+            dma[2] = ctrl2;
+            dma[2];
+        }
+    }
+    {
+        u32 modeAddr = 0x03005428;
+        u8 *mode;
+        asm("" : "=r"(mode) : "0"(modeAddr));
+        *mode = 0x0D;
+    }
+    {
+        u32 d1 = 0x030007DC;
+        u32 s1 = 0x030034F4;
+        u32 *dst1;
+        u32 *src1;
+        asm("" : "=r"(dst1) : "0"(d1));
+        asm("" : "=r"(src1) : "0"(s1));
+        *dst1 = *src1;
+    }
+    {
+        u32 d2 = 0x03005490;
+        u32 s2 = 0x030052AC;
+        u32 *dst2;
+        u32 *src2;
+        asm("" : "=r"(dst2) : "0"(d2));
+        asm("" : "=r"(src2) : "0"(s2));
+        *dst2 = *src2;
+    }
+}
 /**
  * ResetGfxStreamEntries: frees all active stream entries and resets state.
  * Iterates 32 entries in gGfxStreamBuffer, frees those with non-zero flags,
