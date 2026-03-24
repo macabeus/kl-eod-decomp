@@ -63,12 +63,13 @@ INCLUDE_ASM("asm/nonmatchings/m4a", DmaControllerInit);
  *   73 lines, leaf function
  *   refs: gSoundInfo (0x0300081C), gStreamPtr (0x03004D84)
  */
-/*
+/**
  * SoundInfoInit: update sound info timer and flags.
- * Leaf function — original has no push {lr} but old_agbcc generates one.
- * Must stay as INCLUDE_ASM until compiler leaf-function behavior is fixed.
+ *
+ * Leaf function compiled with -fprologue-bugfix (separate compilation unit).
+ * C source in src/m4a_nopush_SoundInfoInit.c.
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", SoundInfoInit);
+asm(".include \"build/m4a_nopush_SoundInfoInit.s\"");
 INCLUDE_ASM("asm/nonmatchings/m4a", StreamCmd_GetStreamPtr);
 INCLUDE_ASM("asm/nonmatchings/m4a", StreamCmd_ValidateStream);
 
@@ -903,9 +904,7 @@ INCLUDE_ASM("asm/nonmatchings/m4a", CgbSound);
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiKeyToCgbFreq);
 /*
  * FUN_08050a44: silence a CGB sound channel.
- * Writes stop values to the appropriate hardware registers
- * for channels 1-4 (Square1, Square2, Wave, Noise).
- *   Non-matching: switch statement generates different code layout.
+ * Leaf function with goto cascade but bgt/bhi and pool alignment diffs.
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_08050a44);
 /*
