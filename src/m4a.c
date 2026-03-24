@@ -878,30 +878,13 @@ INCLUDE_ASM("asm/nonmatchings/m4a", CgbSound);
  *       REG_SOUND3CNT_X (0x04000070), REG_SOUND4CNT_H (0x04000079)
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiKeyToCgbFreq);
-/**
- * FUN_08050a44 (CgbOscOff): silence a CGB sound channel.
+/*
+ * FUN_08050a44: silence a CGB sound channel.
  * Writes stop values to the appropriate hardware registers
  * for channels 1-4 (Square1, Square2, Wave, Noise).
+ *   Non-matching: switch statement generates different code layout.
  */
-void FUN_08050a44(u8 channel) {
-    switch (channel) {
-        case 1:
-            *(vu8 *)0x04000063 = 0x08;
-            *(vu8 *)0x04000065 = 0x80;
-            break;
-        case 2:
-            *(vu8 *)0x04000069 = 0x08;
-            *(vu8 *)0x0400006D = 0x80;
-            break;
-        case 3:
-            *(vu8 *)0x04000070 = 0x00;
-            break;
-        default:
-            *(vu8 *)0x04000079 = 0x08;
-            *(vu8 *)0x0400007D = 0x80;
-            break;
-    }
-}
+INCLUDE_ASM("asm/nonmatchings/m4a", FUN_08050a44);
 /*
  * CgbLookupUtil: CGB utility lookup for pitch/volume tables.
  *   59 lines, leaf function
