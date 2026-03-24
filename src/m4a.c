@@ -264,16 +264,11 @@ INCLUDE_ASM("asm/nonmatchings/m4a", MPlayContinue);
 /**
  * SoundContextRef: release all active sound channels on a track.
  *
- * Iterates the linked list of sound channels starting at track[0x20].
- * For each channel with a nonzero status byte, checks if the type
- * field (byte offset 1) has any of the low 3 bits set. If so, calls
- * SoundChannelRelease. Clears each channel's status byte and callback
- * pointer (offset 0x2C), then NULLs the track's channel list head.
- *   39 lines, calls SoundChannelRelease
- *   Needs -ftst for tst r0,r1 pattern but -ftst breaks other m4a functions.
- *   Reverted to INCLUDE_ASM until per-function flag support is added.
+ * Compiled with -ftst in separate unit (src/m4a_tst_SoundContextRef.c)
+ * to produce tst instruction for the 0x80 status check without
+ * affecting other m4a functions.
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", SoundContextRef);
+asm(".include \"build/m4a_tst_SoundContextRef.s\"");
 /*
  * MPlayStop_Channel: stop playback on a single music channel.
  * Silences one channel without affecting other active tracks.
