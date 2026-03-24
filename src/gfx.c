@@ -148,10 +148,36 @@ void FreeDecompStreamBuffer(void) {
 INCLUDE_ASM("asm/nonmatchings/gfx", ClearScreenBufferB);
 
 /**
- * AllocAndClearGfxBuffer: allocates and zero-fills a 0x20-byte GFX buffer.
- * Stores pointer in gGfxBufferPtr, DMA3-fills with zeros.
+ * AllocAndClearGfxBuffer: allocate and DMA-fill a 32-byte GFX buffer.
+ *
+ * Allocates 32 bytes via thunk_FUN_080001e0 (malloc), stores the pointer
+ * at gGfxBufferPtr, then DMA3-fills the buffer with zero using a
+ * stack-local halfword as the fill source.
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", AllocAndClearGfxBuffer);
+void AllocAndClearGfxBuffer(void) {
+    u16 zero_src;
+    u32 addr = 0x030034A0;
+    register u32 *gfxBuf asm("r4");
+    u32 *buf;
+    asm("" : "=r"(gfxBuf) : "0"(addr));
+    buf = (u32 *)thunk_FUN_080001e0(0x20, 0);
+    *gfxBuf = (u32)buf;
+    {
+        u32 dma_addr = 0x040000D4;
+        register volatile u32 *dma3 asm("r1");
+        u32 sp_ptr = (u32)&zero_src;
+        zero_src = 0;
+        asm("" : "=r"(dma3) : "0"(dma_addr));
+        dma3[0] = sp_ptr;
+        dma3[1] = (u32)buf;
+        {
+            u32 ctrl = 0x81000010;
+            asm("" : "=r"(ctrl) : "0"(ctrl));
+            dma3[2] = ctrl;
+            dma3[2];
+        }
+    }
+}
 
 /**
  * FreeGfxBuffer: frees the GFX buffer struct at gGfxBufferPtr.
@@ -163,10 +189,36 @@ void FreeGfxBuffer(void) {
 INCLUDE_ASM("asm/nonmatchings/gfx", DeadCode_0804bb86);
 
 /**
- * AllocAndClearBuffer_52A4: allocates and zero-fills a 0x480-byte buffer.
- * Stores pointer in gBuffer_52A4, DMA3-fills with zeros.
+ * AllocAndClearBuffer_52A4: allocate and DMA-fill a 1152-byte buffer.
+ *
+ * Allocates 0x480 bytes (0x90 << 3) via thunk_FUN_080001e0, stores the
+ * pointer at gBuffer_52A4, then DMA3-fills with zero using a stack-local
+ * halfword as fill source.
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", AllocAndClearBuffer_52A4);
+void AllocAndClearBuffer_52A4(void) {
+    u16 zero_src;
+    u32 addr = 0x030052A4;
+    register u32 *bufPtr asm("r4");
+    u32 *buf;
+    asm("" : "=r"(bufPtr) : "0"(addr));
+    buf = (u32 *)thunk_FUN_080001e0(0x90 << 3, 0);
+    *bufPtr = (u32)buf;
+    {
+        u32 dma_addr = 0x040000D4;
+        register volatile u32 *dma3 asm("r1");
+        u32 sp_ptr = (u32)&zero_src;
+        zero_src = 0;
+        asm("" : "=r"(dma3) : "0"(dma_addr));
+        dma3[0] = sp_ptr;
+        dma3[1] = (u32)buf;
+        {
+            u32 ctrl = 0x81000240;
+            asm("" : "=r"(ctrl) : "0"(ctrl));
+            dma3[2] = ctrl;
+            dma3[2];
+        }
+    }
+}
 /** FreeBuffer_52A4: frees the memory buffer at gBuffer_52A4. */
 void FreeBuffer_52A4(void) {
     thunk_FUN_0800020c(gBuffer_52A4);
@@ -175,11 +227,58 @@ INCLUDE_ASM("asm/nonmatchings/gfx", SetupWorldMapBG);
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupTextBGLayer);
 INCLUDE_ASM("asm/nonmatchings/gfx", ClearScreenBufferB_Alt);
 /**
- * InitLevelStateDefaults: sets default dimensions, scroll, window regs.
+ * InitLevelStateDefaults: set default level dimensions, scroll, and window regs.
+ *
  * Initializes map dimensions (0xE80 x 0xA00), scroll (0x700 x 0xA00),
- * REG_WININ=0x1F23, REG_WINOUT=0x003D, clears OBJ window in DISPCNT.
+ * calls UpdateAffineRegisters, sets REG_WININ=0x1F23, REG_WINOUT=0x003D,
+ * clears OBJ window enable (bit 14) in REG_DISPCNT.
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", InitLevelStateDefaults);
+void InitLevelStateDefaults(void) {
+    u32 addr = 0x030034A0;
+    u32 *bufAddr;
+    register u16 *buf asm("r1");
+
+    asm("" : "=r"(bufAddr) : "0"(addr));
+    buf = *(u16 **)bufAddr;
+    {
+        u16 val = 0;
+        u16 scroll;
+        u16 dim;
+        buf[4] = val;
+        val = 0xE80;
+        buf[8] = val;
+        scroll = 0x700;
+        buf[5] = scroll;
+        dim = 0xA00;
+        buf[9] = dim;
+        buf[6] = scroll;
+        buf[11] = dim;
+    }
+    UpdateAffineRegisters();
+    {
+        u32 winAddr = 0x04000048;
+        u32 wiVal = 0x1F23;
+        register u16 *winin asm("r1");
+        register u32 wiConst asm("r2");
+        register u32 val asm("r0");
+        asm("" : "=r"(winin) : "0"(winAddr));
+        asm("" : "=r"(wiConst) : "0"(wiVal));
+        val = wiConst;
+        asm("" : "+r"(val));
+        *winin = val;
+        asm("add\t%0, #0x02" : "+r"(winin));
+        *winin = 0x3D;
+    }
+    {
+        volatile u16 *dispcnt = (volatile u16 *)(0x80 << 19);
+        u32 bfAddr = 0xBFFF;
+        u16 val = *dispcnt;
+        u16 mask;
+        asm("" : "=r"(mask) : "0"(bfAddr));
+        mask &= val;
+        *dispcnt = mask;
+    }
+}
 void VBlankHandler_WithWindowScroll(void);
 void UpdateBGScrollWithWave(void);
 void ReadKeyInput(void);
@@ -333,10 +432,40 @@ INCLUDE_ASM("asm/nonmatchings/gfx", DispatchLevelLayerSetup);
  * gBGLayerState[layer].scrollX/Y. Advances stream by 7.
  */
 /**
- * StreamCmd_SetBGScroll: sets BG scroll from stream data.
- * byte[2]=layer, bytes[3-4]=scrollX, bytes[5-6]=scrollY (shifted <<4).
+ * StreamCmd_SetBGScroll: set BG layer scroll from stream data.
+ *
+ * Reads scrollX (bytes[3-4]) and scrollY (bytes[5-6]) via ReadUnalignedU16,
+ * shifts each left 4 for subpixel precision, stores to the BG layer state
+ * table indexed by byte[2]. Advances stream by 7.
  */
-INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGScroll);
+void StreamCmd_SetBGScroll(void) {
+    u32 spAddr = 0x03004D84;
+    register u8 **sp asm("r4");
+    register u16 scrollX asm("r3");
+    u32 tblAddr = 0x03003430;
+    register u8 *tbl asm("r5");
+    u8 *p;
+    u8 layer;
+    u32 off;
+
+    asm("" : "=r"(sp) : "0"(spAddr));
+    scrollX = ReadUnalignedU16(*sp + 3);
+    asm("" : "=r"(tbl) : "0"(tblAddr));
+    p = *sp;
+    layer = p[2];
+    off = (u32)(layer * 7) << 2;
+    off += (u32)tbl;
+    *(u16 *)(off + 8) = scrollX << 4;
+    {
+        u16 scrollY = ReadUnalignedU16(p + 5);
+        u8 *p2 = *sp;
+        u8 layer2 = p2[2];
+        u32 off2 = (u32)(layer2 * 7) << 2;
+        off2 += (u32)tbl;
+        *(u16 *)(off2 + 10) = scrollY << 4;
+        *sp = p2 + 7;
+    }
+}
 /*
  * Reads a palette color entry from a data stream and writes it to BG palette RAM.
  * The stream at *0x03004D84 is a packed format: byte[2] is the palette index,
@@ -388,7 +517,57 @@ INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitOscillation);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitOscillationExt);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitStaticScroll);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitFrameAnimation);
-INCLUDE_ASM("asm/nonmatchings/gfx", ProcessHBlankWait);
+/**
+ * ProcessHBlankWait: process HBlank wait timer for a stream entry.
+ *
+ * Enables HBlank interrupt (bit 1 in REG_IE) and VCount interrupt
+ * (bit 4 in REG_DISPSTAT). Checks the entry's timer at offset 0x14;
+ * if expired (negative after decrement), disables both interrupts
+ * and returns 0. If bit 7 of entry[3] is set or timer still positive,
+ * returns 1.
+ *
+ * @param idx  Stream entry index
+ * @return     1 if still waiting, 0 if timer expired
+ */
+u32 ProcessHBlankWait(u32 idx) {
+    u32 ieAddr = 0x04000200;
+    register volatile u16 *ie asm("r3");
+    u32 dsAddr = 0x04000004;
+    register volatile u16 *dispstat asm("r4");
+    u8 *buf;
+    u32 off;
+    u8 *entry;
+
+    asm("" : "=r"(ie) : "0"(ieAddr));
+    *ie |= 2;
+    asm("" : "=r"(dispstat) : "0"(dsAddr));
+    *dispstat |= 0x10;
+
+    {
+        u8 **bufPtr;
+        u32 bAddr = 0x030052A4;
+        asm("" : "=r"(bufPtr) : "0"(bAddr));
+        buf = *bufPtr;
+    }
+    off = idx * 9;
+    off <<= 2;
+    off += (u32)buf;
+    entry = (u8 *)off;
+
+    if (entry[3] >> 7) {
+        return 1;
+    }
+    {
+        u32 timer = *(u16 *)(entry + 0x14) - 1;
+        *(u16 *)(entry + 0x14) = timer;
+        if ((s32)(timer << 16) < 0) {
+            *ie &= 0xFFFD;
+            *dispstat &= 0xFFEF;
+            return 0;
+        }
+    }
+    return 1;
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitHBlankWait);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitSpriteWave);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_InitButtonWait);

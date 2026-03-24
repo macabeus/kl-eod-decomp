@@ -70,7 +70,32 @@ INCLUDE_ASM("asm/nonmatchings/code_3", ComputeScrollLimits);
 INCLUDE_ASM("asm/nonmatchings/code_3", ApplyPlayerMovement);
 INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerNormal);
 INCLUDE_ASM("asm/nonmatchings/code_3", SetupEntitySpawnTable);
-INCLUDE_ASM("asm/nonmatchings/code_3", RollRandomLevelVariant);
+/**
+ * RollRandomLevelVariant: select a random level variant based on difficulty.
+ *
+ * Reads the current difficulty level, computes a variant index using
+ * difficulty parity and a random modulo, and stores it to the level state.
+ */
+void RollRandomLevelVariant(void) {
+    u8 *state = (u8 *)0x03005400;
+    u8 difficulty = state[0x0C];
+    register u32 d asm("r4") = (u8)(difficulty - 1);
+    u32 rng;
+    u32 addr = 0x03004C20;
+    register u8 *levelState asm("r6");
+    register u32 parity asm("r5");
+    u8 randByte;
+    u32 variant;
+    rng = thunk_FUN_080002a0();
+    asm("" : "=r"(levelState) : "0"(addr));
+    parity = 1;
+    parity &= d;
+    randByte = (u8)rng;
+    rng = (u8)d;
+    variant = FUN_0805193c(randByte, 5 - rng);
+    parity = parity + variant + 1;
+    levelState[0x0E] = parity;
+}
 INCLUDE_ASM("asm/nonmatchings/code_3", UpdatePlayerBoss);
 INCLUDE_ASM("asm/nonmatchings/code_3", ConfigureEntityBehavior);
 INCLUDE_ASM("asm/nonmatchings/code_3", ResetEntityTypesOnDeath);

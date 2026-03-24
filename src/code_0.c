@@ -7,7 +7,40 @@ INCLUDE_ASM("asm/nonmatchings/code_0", RenderHUDBottom); /* RenderHUDBottom */
 INCLUDE_ASM("asm/nonmatchings/code_0", RenderMenuUI); /* RenderMenuUI */
 INCLUDE_ASM("asm/nonmatchings/code_0", RenderDialogBox); /* RenderDialogBox */
 INCLUDE_ASM("asm/nonmatchings/code_0", RenderDialogSprites); /* RenderDialogSprites */
-INCLUDE_ASM("asm/nonmatchings/code_0", InitOamEntries); /* InitOamEntries */
+/**
+ * InitOamEntries: initialize 128 OAM entries from a ROM template.
+ *
+ * Copies a 2-word template from 0x080E2A7C to each 8-byte OAM slot
+ * at 0x03004800, then overwrites bytes 6-7 of each slot with successive
+ * halfwords from the rotation/scaling table at 0x03004680.
+ */
+void InitOamEntries(void) {
+    u32 addr1 = 0x03004680;
+    register u16 *rotTable asm("r5");
+    u32 addr2 = 0x080E2A7C;
+    register u32 template_lo asm("r3");
+    register u32 template_hi asm("r4");
+    u32 addr3 = 0x03004800;
+    register u8 *oam asm("r1");
+    register s32 i asm("r2");
+    asm("" : "=r"(rotTable) : "0"(addr1));
+    {
+        u32 *tmpl;
+        asm("" : "=r"(tmpl) : "0"(addr2));
+        template_lo = tmpl[0];
+        template_hi = tmpl[1];
+    }
+    asm("" : "=r"(oam) : "0"(addr3));
+    i = 0x7F;
+    do {
+        *(u32 *)(oam + 0) = template_lo;
+        *(u32 *)(oam + 4) = template_hi;
+        *(u16 *)(oam + 6) = *rotTable;
+        rotTable++;
+        oam += 8;
+        i--;
+    } while (i >= 0);
+}
 INCLUDE_ASM("asm/nonmatchings/code_0", TransformEntityScreenPositions);
 INCLUDE_ASM("asm/nonmatchings/code_0", TransformSingleEntityToScreen);
 INCLUDE_ASM("asm/nonmatchings/code_0", TransformAllEntitiesToScreen);

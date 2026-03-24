@@ -32,12 +32,53 @@ void StrCpy(u8 *dst, u8 *src) {
 INCLUDE_ASM("asm/nonmatchings/system", AgbMain);
 
 /**
- * ReadKeyInput: reads REG_KEYINPUT, debounces, checks for reset combo.
+ * ReadKeyInput: read GBA buttons, debounce, and check for reset combo.
  *
- * XORs raw key register to get active-high pressed state, filters
- * for edge detection, checks A+B+Start+Select for soft reset.
+ * Reads REG_KEYINPUT (active-low), XORs with 0x3FF to get active-high
+ * pressed state, edge-detects new presses against previous frame,
+ * checks A+B+Start+Select combo (0x0F) for soft reset, and tracks
+ * A-button hold duration for repeat input.
  */
-INCLUDE_ASM("asm/nonmatchings/system", ReadKeyInput);
+void ReadKeyInput(void) {
+    u16 raw = *(volatile u16 *)0x04000130;
+    u32 maskAddr = 0x3FF;
+    register u32 mask asm("r2");
+    u32 nkAddr = 0x03004DA0;
+    u32 pkAddr = 0x030051E4;
+    register u16 *newKeys asm("r3");
+    register u16 *prevKeys asm("r4");
+    register u32 pressed asm("r1");
+    u16 prev;
+    u32 edge;
+
+    asm("" : "=r"(mask) : "0"(maskAddr));
+    pressed = mask;
+    asm("" : "+r"(pressed));
+    pressed ^= raw;
+    asm("" : "=r"(newKeys) : "0"(nkAddr));
+    asm("" : "=r"(prevKeys) : "0"(pkAddr));
+    prev = *prevKeys;
+    edge = pressed;
+    asm("" : "+r"(edge));
+    edge &= ~(u32)prev;
+    *newKeys = edge;
+    *prevKeys = pressed;
+    pressed &= 0x0F;
+    if (pressed == 0x0F) {
+        SoftReset(0xFF);
+    }
+    {
+        u16 cur = *prevKeys;
+        u16 aBtn = 1;
+        aBtn &= cur;
+        if (aBtn) {
+            u16 *counter = (u16 *)0x030034F0;
+            *counter = *counter + 1;
+        } else {
+            *(u16 *)0x030034F0 = aBtn;
+        }
+    }
+}
 
 /**
  * ProcessInputAndTimers: extended input handler with timer management.

@@ -128,7 +128,7 @@ $(OBJ_DIR)/m4a_1_funcs.s: $(C_SUBDIR)/m4a_1.c
 $(C_BUILDDIR)/m4a.o: $(C_SUBDIR)/m4a.c $(OBJ_DIR)/m4a_1_funcs.s
 	@echo "$(CC1_OLD) <m4a flags> -o $@ $<"
 	@$(CPP) $(CPPFLAGS) $< -o $(C_BUILDDIR)/m4a.i
-	@$(CC1_OLD) -mthumb-interwork -O2 -o $(C_BUILDDIR)/m4a.s $(C_BUILDDIR)/m4a.i
+	@$(CC1_OLD) -mthumb-interwork -O2 -ftst -fcmp-elim -o $(C_BUILDDIR)/m4a.s $(C_BUILDDIR)/m4a.i
 	@printf ".text\n\t.align\t2, 0\n" >> $(C_BUILDDIR)/m4a.s
 	@$(AS) $(ASFLAGS) -o $@ $(C_BUILDDIR)/m4a.s
 
