@@ -224,7 +224,62 @@ void FreeBuffer_52A4(void) {
     thunk_FUN_0800020c(gBuffer_52A4);
 }
 INCLUDE_ASM("asm/nonmatchings/gfx", SetupWorldMapBG);
-INCLUDE_ASM("asm/nonmatchings/gfx", SetupTextBGLayer);
+/**
+ * SetupTextBGLayer: initialize BG3 for text/UI rendering.
+ *
+ * Sets up the BG layer state table entry for BG3: tile base, map base,
+ * scroll, map width. Calls SoundDmaInit to load font tiles, DMA-copies
+ * text palette from ROM, sets REG_BG3CNT=0x700, clears BG3 scroll.
+ */
+void SetupTextBGLayer(void) {
+    u32 tblAddr = 0x03003430;
+    register u8 *tbl asm("r4");
+    asm("" : "=r"(tbl) : "0"(tblAddr));
+    {
+        u32 base = *(u16 *)(tbl + 0x16) + 0x20;
+        u32 srcAddr = 0x0804BB11;
+        u8 *src;
+        asm("" : "=r"(src) : "0"(srcAddr));
+        SoundDmaInit(base, (u32)src, 0x1D, 0x10);
+    }
+    *(u32 *)(tbl + 0x1C) = 0xC0 << 19;
+    *(u32 *)(tbl + 0x20) = 0x06003800;
+    {
+        u16 zero = 0;
+        *(u16 *)(tbl + 0x24) = zero;
+        *(u16 *)(tbl + 0x26) = zero;
+        {
+            u8 *mapW = tbl + 0x34;
+            *mapW = 0x20;
+        }
+        *(u16 *)(tbl + 0x30) = *(u16 *)(tbl + 0x16);
+        {
+            u32 dmaAddr = 0x040000D4;
+            register volatile u32 *dma asm("r1");
+            u32 romPal = 0x080576B4;
+            u32 palDst = 0x050001E0;
+            u32 ctrl = 0x80000020;
+            asm("" : "=r"(dma) : "0"(dmaAddr));
+            asm("" : "=r"(romPal) : "0"(romPal));
+            dma[0] = romPal;
+            asm("" : "=r"(palDst) : "0"(palDst));
+            dma[1] = palDst;
+            asm("" : "=r"(ctrl) : "0"(ctrl));
+            dma[2] = ctrl;
+            dma[2];
+            asm("add\t%0, #-0xCA" : "+r"(dma));
+            *(volatile u16 *)dma = 0x700;
+        }
+        {
+            u32 scrollAddr = 0x04000014;
+            volatile u16 *scroll;
+            asm("" : "=r"(scroll) : "0"(scrollAddr));
+            *scroll = zero;
+            asm("add\t%0, #0x02" : "+r"(scroll));
+            *scroll = zero;
+        }
+    }
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", ClearScreenBufferB_Alt);
 /**
  * InitLevelStateDefaults: set default level dimensions, scroll, and window regs.
