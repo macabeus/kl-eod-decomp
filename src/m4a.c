@@ -904,7 +904,9 @@ INCLUDE_ASM("asm/nonmatchings/m4a", CgbSound);
 INCLUDE_ASM("asm/nonmatchings/m4a", MidiKeyToCgbFreq);
 /*
  * FUN_08050a44: silence a CGB sound channel.
- * Leaf function with goto cascade but bgt/bhi and pool alignment diffs.
+ * Blocker: original uses bgt (signed branch) for u8 > 2 comparison,
+ * but agbcc generates bhi (unsigned). 1-byte encoding difference
+ * that can't be fixed from C. Needs compiler patch to branch encoding.
  */
 INCLUDE_ASM("asm/nonmatchings/m4a", FUN_08050a44);
 /*

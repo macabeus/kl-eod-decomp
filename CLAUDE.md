@@ -28,7 +28,7 @@ Build requires `arm-none-eabi` toolchain, Python 3.13+, and a legally obtained `
 
 Each source file in `src/` represents a module defined in `klonoa-eod-decomp.toml` with a start address. Non-decompiled functions use the `INCLUDE_ASM()` macro to inline generated assembly from `asm/nonmatchings/`. The link order in `ldscript.txt` is: rom_header → crt0 → system → math → engine → code_0 → code_1 → code_3 → gfx → m4a → syscalls → util → libgcc → data.
 
-**Modules** (src/): `system.c` (14 funcs), `math.c` (4), `engine.c` (25), `code_0.c` (51), `code_1.c` (121), `code_3.c` (142), `gfx.c` (137), `m4a.c` (38), `syscalls.c` (2), `util.c` (5).
+**Modules** (src/): `system.c` (10 funcs), `math.c` (7 funcs), `engine.c` (27 funcs), `code_0.c` (24 funcs), `code_1.c` (103 funcs), `code_3.c` (88 funcs), `gfx.c` (115 funcs), `m4a.c` (99 funcs), `syscalls.c` (5 funcs), `util.c` (11 funcs).
 
 ## Decompilation Workflow
 
@@ -66,6 +66,8 @@ Each source file in `src/` represents a module defined in `klonoa-eod-decomp.tom
 - **Issue closing comments must reference the fix commit.** When closing an issue because its function was decompiled or bug was fixed, the comment must cite the specific commit that introduced the fix (e.g., "Fixed in abc1234").
 
 - **PRs use feature branches.** Create a branch from `main`, push, open PR against upstream. Never push work directly to `main`. Delete branches after merge.
+
+- **PR titles must stay accurate.** When updating a PR with new commits, review and edit the title so it still accurately describes the full contents.
 
 - **Update the website when learning about architecture.** When decompilation reveals how a subsystem works, update the gh-pages documentation (graphics-engine.html, game-engine.html, sound.html, matching.html, etc.).
 
