@@ -691,7 +691,18 @@ INCLUDE_ASM("asm/nonmatchings/gfx", ProcessScreenFade);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdatePaletteFadeStep);
 INCLUDE_ASM("asm/nonmatchings/gfx", ProcessSceneTransitionOut);
 INCLUDE_ASM("asm/nonmatchings/gfx", StreamCmd_SetBGModeTiled);
-INCLUDE_ASM("asm/nonmatchings/gfx", FUN_0804e404);
+/**
+ * StreamCmd_SetRenderModeTiled: set render mode to 2.
+ * Clears low 2 bits of gGfxBuffer[0], sets bit 1. Advances stream by 2.
+ */
+void StreamCmd_SetRenderModeTiled(void) {
+    u8 *buf = *(u8 **)0x030034A0;
+    u8 val = buf[0];
+    s32 mask = -4;
+    mask &= val;
+    buf[0] = mask | 2;
+    gStreamPtr += 2;
+}
 void StreamCmd_ClearRenderMode(void) {
     s8 *p;
     u8 **streamPtr;
