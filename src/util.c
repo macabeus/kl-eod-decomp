@@ -92,8 +92,27 @@ INCLUDE_ASM("asm/nonmatchings/util", EepromDmaTransfer);
 INCLUDE_ASM("asm/nonmatchings/util", EepromReadSector);
 INCLUDE_ASM("asm/nonmatchings/util", EepromWriteSector);
 INCLUDE_ASM("asm/nonmatchings/util", EepromVerifySector);
+u16 EepromWriteSector(u16, u16 *);
+u16 EepromVerifySector(u16, u16 *);
 /**
  * SaveGameRetry: attempts write+verify save up to 3 times.
- * Calls EepromWriteSector (write) then EepromVerifySector (verify).
+ *
+ * Writes a sector with EepromWriteSector, then verifies with
+ * EepromVerifySector. Retries up to 3 times on failure.
+ * Returns 0 on success, non-zero on persistent failure.
  */
-INCLUDE_ASM("asm/nonmatchings/util", SaveGameRetry);
+u16 SaveGameRetry(u16 sector, u16 *data) {
+    u16 result;
+    u8 retryCount;
+
+    for (retryCount = 0; retryCount <= 2; retryCount++) {
+        result = EepromWriteSector(sector, data);
+        if (result != 0)
+            continue;
+        result = EepromVerifySector(sector, data);
+        if (result != 0)
+            continue;
+        break;
+    }
+    return result;
+}
