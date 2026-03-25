@@ -314,6 +314,92 @@ buf[8] = val;     // movs r0, #0xE8; lsls r0, #4; strh r0, [r1, #16]
             <p><strong>Matched:</strong> InitLevelStateDefaults.</p>
         </div>
 
+        <div class="technique-card">
+            <h3>13. <code>s32 mask = -N</code> for <code>movs; negs; ands</code> <span class="tag-solved">SOLVED</span></h3>
+            <p>
+                <strong>Problem:</strong> Bitmask constants like <code>~0x40</code> generate <code>movs r0, #0xBF</code>
+                if the value fits in 8 bits, but the original uses <code>movs r0, #0x41; negs r0, r0</code> (2 instructions).
+            </p>
+            <pre><code>s32 mask = -0x41;     // movs r0, #0x41; negs r0, r0
+mask &amp;= val;          // ands r0, r2
+buf[0x1C] = mask | toggled;</code></pre>
+            <p><strong>Matched:</strong> StreamCmd_SetRenderModeTiled, StreamCmd_InitHBlankWait (partial), EepromEndTransfer.</p>
+            <p><strong>Pattern frequency:</strong> 434 <code>negs</code> instructions across 131 functions in the ROM.</p>
+        </div>
+
+        <div class="technique-card">
+            <h3>14. Volatile Loads to Prevent Instruction Reordering <span class="tag-solved">SOLVED</span></h3>
+            <p>
+                <strong>Problem:</strong> The compiler hoists <code>movs r2, #8</code> before <code>ldrb r1, [r1]</code>
+                because they're independent. The original has the load first.
+            </p>
+            <pre><code>// BAD: compiler reorders
+u8 idx = *(u8 *)addr;    // ldrb after movs
+u32 bit = 8;
+
+// GOOD: volatile prevents reorder
+u8 idx = *(vu8 *)addr;   // ldrb MUST happen here
+u32 bit = 8;              // movs after ldrb</code></pre>
+            <p><strong>Matched:</strong> EepromEndTransfer, EepromBeginTransfer.</p>
+        </div>
+
+        <div class="technique-card">
+            <h3>15. Variable Reuse for Self-Load (<code>ldrb Rd, [Rd]</code>) <span class="tag-solved">SOLVED</span></h3>
+            <p>
+                <strong>Problem:</strong> <code>u8 val = *ptr</code> creates separate pseudo-registers for <code>ptr</code>
+                and <code>val</code>, so the compiler uses different hard registers: <code>ldrb r2, [r1]</code>.
+                The original uses the same register: <code>ldrb r1, [r1]</code>.
+            </p>
+            <p>
+                <strong>Root cause:</strong> <code>REG_ALLOC_ORDER = {r3, r2, r1, r0, ...}</code> — the compiler
+                prefers higher-numbered scratch registers. When <code>ptr</code> is in r1, the result gets
+                r2 (preferred over r1). Self-load only happens when the same pseudo-register is used.
+            </p>
+            <pre><code>// BAD: separate variables → ldrb r2, [r1]
+u8 *ptr = (u8 *)0x03000378;
+u8 val = *ptr;
+
+// GOOD: reuse same variable → ldrb r1, [r1]
+u32 addr = 0x03000378;
+addr = *(u8 *)addr;  // same pseudo → same register</code></pre>
+            <p><strong>Matched:</strong> EepromBeginTransfer.</p>
+        </div>
+
+        <div class="technique-card">
+            <h3>16. Volatile Pointer for Dead Store Preservation <span class="tag-solved">SOLVED</span></h3>
+            <p>
+                <strong>Problem:</strong> Intermediate writes to a pointer get optimized away:
+                <code>*ptr = a; ptr++; *ptr = b; ptr--; *ptr = c;</code> — the compiler skips the
+                intermediate <code>ptr</code> updates since the final value is the same.
+            </p>
+            <pre><code>// BAD: intermediate stores eliminated
+u32 *p = (u32 *)0x03000380;
+// compiler optimizes away the ptr updates
+
+// GOOD: volatile prevents elimination
+vu32 *p = (vu32 *)0x03000380;
+*p = (u32)timer;     // preserved!
+timer++;
+*p = (u32)timer;     // preserved!</code></pre>
+            <p><strong>Matched:</strong> EepromEndTransfer, EepromBeginTransfer.</p>
+        </div>
+
+        <div class="technique-card">
+            <h3>17. Local Variables Prevent Constant Folding <span class="tag-solved">SOLVED</span></h3>
+            <p>
+                <strong>Problem:</strong> <code>((u8 *)0x03003410)[0x0B]</code> gets constant-folded to
+                <code>*(u8 *)0x0300341B</code>, loading the folded address from the constant pool with offset 0.
+                The original loads the base address and uses an immediate offset: <code>ldrb r0, [r0, #11]</code>.
+            </p>
+            <pre><code>// BAD: constant folded → ldr r0, =0x0300341B; ldrb r0, [r0]
+((u8 *)0x03003410)[0x0B]
+
+// GOOD: local prevents folding → ldr r0, =0x03003410; ldrb r0, [r0, #11]
+u8 *p = (u8 *)0x03003410;
+p[0x0B]</code></pre>
+            <p><strong>Limitation:</strong> Only works for offsets &le; 31 (Thumb <code>ldrb [Rb, #imm5]</code> max).</p>
+        </div>
+
         <!-- ===== Remaining Blockers ===== -->
         <h2>Remaining Blockers</h2>
         <p>
@@ -437,22 +523,29 @@ DeadCode:             ; now 2 bytes later!
         </div>
 
         <div class="blocker-card">
-            <h3>F. Register Allocation for Struct Member Stores <span class="tag-blocker">~100+ functions</span></h3>
+            <h3>F. Register Allocation Order <span class="tag-blocker">~100+ functions</span></h3>
             <p>
-                When a function stores multiple values to struct members, the compiler's register allocator
-                may choose different registers than the original. This affects which register holds the
-                struct pointer, which holds intermediate values, and the order of operations.
+                <strong>Root cause identified:</strong> <code>REG_ALLOC_ORDER = {r3, r2, r1, r0, r12, r14, r4, r5, r6, r7, ...}</code>.
+                The compiler prefers r3 for the first scratch allocation, then r2, r1, r0.
+                Callee-saved registers are assigned r4, r5, r6, r7 in order.
             </p>
             <p>
-                The <code>register type var asm("rN")</code> constraint can sometimes fix this, but it
-                often causes cascading changes in other register assignments. The more constrained registers,
-                the more likely other parts of the code break.
+                This means the compiler's choice of which register gets a <code>ldrb</code> result or a
+                constant is determined by pseudo-register numbering — which variable was created first in
+                the compiler's internal representation. Techniques like <code>register asm("rN")</code>,
+                variable reuse (technique 15), and volatile loads (technique 14) can influence this,
+                but many functions have an irreducible 2-10 byte difference.
             </p>
             <p>
-                <strong>Affected:</strong> InitLevelStateDefaults, TransitionReturnToWorldMap,
-                TransitionToSceneSelect, TransitionToTitleScreen, most functions with 3+ struct member stores.
+                The decomp-permuter can narrow the gap (e.g., StreamCmd_InitHBlankWait: 50 → 10 bytes)
+                but cannot reach 0 when the pseudo-register order fundamentally differs.
             </p>
-            <p><strong>Status:</strong> Case-by-case manual tuning. No systematic solution.</p>
+            <p>
+                <strong>Affected:</strong> StreamCmd_InitHBlankWait (10 bytes), DmaSpriteToObjVram (7 bytes),
+                CalcBGScrollMapSize, ResetEntityScrollState, SetPaletteAnimEntry, and most functions
+                with 3+ local variables competing for scratch registers.
+            </p>
+            <p><strong>Status:</strong> Partial mitigation via techniques 14-17. Full solution requires compiler patch to <code>local-alloc.c</code>.</p>
         </div>
 
         <div class="blocker-card">
