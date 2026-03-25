@@ -98,7 +98,7 @@
             <tr><td>gfx.c</td><td>42 of 115 matched</td><td>(DMA-fill, stream commands, scroll, level defaults, HBlank wait, ...)</td></tr>
             <tr><td>m4a.c + m4a_1.c</td><td>52 of 113 matched</td><td>(SoundContextRef, SoundInfoInit, VoiceLookupAndApply, ply_*, ...)</td></tr>
             <tr><td>syscalls.c</td><td>5 of 5 matched</td><td>(all BIOS call wrappers)</td></tr>
-            <tr><td>util.c</td><td>6 of 11 matched</td><td>(EepromTimerCallback; rest blocked by loop patterns)</td></tr>
+            <tr><td>util.c</td><td>7 of 11 matched</td><td>(EepromTimerCallback; rest blocked by loop patterns)</td></tr>
         </table>
 
         <!-- ===== Solved Techniques ===== -->
@@ -317,7 +317,7 @@ buf[8] = val;     // movs r0, #0xE8; lsls r0, #4; strh r0, [r1, #16]
         <!-- ===== Remaining Blockers ===== -->
         <h2>Remaining Blockers</h2>
         <p>
-            These patterns prevent matching the remaining ~370 functions. Each affects a different
+            These patterns prevent matching the remaining ~369 functions. Each affects a different
             subset of the codebase. Solving any one of them would unlock dozens of new matches.
         </p>
 
@@ -497,7 +497,7 @@ DeadCode:             ; now 2 bytes later!
                 <tr><th>Category</th><th>Count</th><th>Status</th></tr>
             </thead>
             <tbody>
-                <tr><td>Matched to C</td><td>116</td><td class="tag-solved">Done</td></tr>
+                <tr><td>Matched to C</td><td>117</td><td class="tag-solved">Done</td></tr>
                 <tr><td>Blocked by <code>tst</code> vs <code>ands</code></td><td>~60</td><td class="tag-partial">Partially solved (<code>-ftst -fcmp-elim</code>)</td></tr>
                 <tr><td>Blocked by leaf prologue</td><td>~40</td><td class="tag-partial">Many actually match (see InitOamEntries)</td></tr>
                 <tr><td>Non-word-aligned</td><td>~20</td><td class="tag-blocker">Impossible from C</td></tr>
