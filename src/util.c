@@ -91,9 +91,42 @@ void EepromEndTransfer(void) {
 INCLUDE_ASM("asm/nonmatchings/util", EepromDmaTransfer);
 INCLUDE_ASM("asm/nonmatchings/util", EepromReadSector);
 INCLUDE_ASM("asm/nonmatchings/util", EepromWriteSector);
-INCLUDE_ASM("asm/nonmatchings/util", EepromVerifySector);
+/**
+ * EepromVerifySector: reads an EEPROM sector and compares against expected data.
+ *
+ * Reads 8 bytes (4 halfwords) from the given sector into a stack buffer,
+ * then compares each halfword against the expected data.
+ * Returns 0 on match, 0x8000 on mismatch, 0x80FF if sector out of range.
+ */
+u16 EepromVerifySector(u16 sector, u16 *expected) {
+    u16 buf[4];
+    u16 result = 0;
+    u16 *table = *(u16 **)0x030066F0;
+
+    if (sector >= table[2])
+        return 0x80FF;
+
+    EepromReadSector(sector, buf);
+
+    {
+        u16 *actual = buf;
+        u8 i = 0;
+        while (i <= 3) {
+            u16 exp = *expected;
+            u16 act = *actual;
+            actual++;
+            expected++;
+            if (exp != act) {
+                result = 0x8000;
+                break;
+            }
+            i++;
+        }
+    }
+    return result;
+}
+u16 EepromReadSector(u16, u16 *);
 u16 EepromWriteSector(u16, u16 *);
-u16 EepromVerifySector(u16, u16 *);
 /**
  * SaveGameRetry: attempts write+verify save up to 3 times.
  *
