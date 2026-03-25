@@ -38,7 +38,40 @@ void EepromTimerCallback(void) {
 }
 INCLUDE_ASM("asm/nonmatchings/util", FUN_080514d4);
 INCLUDE_ASM("asm/nonmatchings/util", EepromBeginTransfer);
-INCLUDE_ASM("asm/nonmatchings/util", EepromEndTransfer);
+/**
+ * EepromEndTransfer: disables the EEPROM timer and its interrupt.
+ *
+ * Clears the timer control registers, disables the timer's interrupt bit
+ * in REG_IE, and restores the saved IME state.
+ */
+void EepromEndTransfer(void) {
+    vu32 *timerPtrAddr = (vu32 *)0x03000380;
+    u16 *timer = (u16 *)*timerPtrAddr;
+    u16 zero = 0;
+
+    *(vu16 *)timer = zero;
+    timer += 1;
+    *timerPtrAddr = (u32)timer;
+    *(vu16 *)timer = zero;
+    timer -= 1;
+    *timerPtrAddr = (u32)timer;
+
+    *(vu16 *)0x04000208 = zero;
+
+    {
+        vu16 *ie = (vu16 *)0x04000200;
+        u32 timerIdx = *(vu8 *)0x03000378;
+        u32 bit = 8;
+        bit <<= timerIdx;
+        {
+            u16 val = *ie;
+            val &= ~bit;
+            *ie = val;
+        }
+    }
+
+    *(vu16 *)0x04000208 = *(vu16 *)0x03000384;
+}
 INCLUDE_ASM("asm/nonmatchings/util", EepromDmaTransfer);
 INCLUDE_ASM("asm/nonmatchings/util", EepromReadSector);
 INCLUDE_ASM("asm/nonmatchings/util", EepromWriteSector);
