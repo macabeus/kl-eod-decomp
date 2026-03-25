@@ -2561,7 +2561,14 @@ def _run_luvdis():
     os.makedirs(os.path.dirname(output), exist_ok=True)
 
     env = os.environ.copy()
-    env["PYTHONPATH"] = LUVDIS_DIR + os.pathsep + env.get("PYTHONPATH", "")
+    # Include both luvdis dir and venv site-packages so 'click' is found
+    venv_site = os.path.join(ROOT, ".venv", "lib",
+                             f"python{sys.version_info.major}.{sys.version_info.minor}",
+                             "site-packages")
+    extra = LUVDIS_DIR
+    if os.path.isdir(venv_site):
+        extra += os.pathsep + venv_site
+    env["PYTHONPATH"] = extra + os.pathsep + env.get("PYTHONPATH", "")
 
     print(f"  Running Luvdis (stop=0x{0x08000000 + CODE_END:08X})...")
     result = subprocess.run(
