@@ -12,6 +12,7 @@
 #define BG_PAL_RAM                 0x05000000
 #define OBJ_PAL_RAM                0x05000200
 #define VRAM                       0x06000000
+#define OBJ_VRAM                   0x06010000
 #define OAM                        0x07000000
 #define ROM                        0x08000000
 

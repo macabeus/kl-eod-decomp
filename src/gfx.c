@@ -494,13 +494,13 @@ void DispatchStreamCommand_C0EC(void) {
  * DmaSpriteToObjVram: DMA sprite tile data from ROM to OBJ VRAM.
  */
 void DmaSpriteToObjVram(u32 entryIdx, u32 frameIdx) {
-    vu32 *dma3 = (vu32 *)0x040000D4;
-    u32 base = *(vu32 *)0x030007C8;
+    vu32 *dma3 = &REG_DMA3SAD;
+    u32 base = *(vu32 *)&gGfxStreamBuffer;
     u8 *entry = (u8 *)(entryIdx * 8 + base);
     u16 tileCount = *(u16 *)(entry + 6);
     dma3[0] = *(u32 *)entry + tileCount * (frameIdx << 5);
 
-    dma3[1] = (u32) * (u16 *)(entry + 4) * 32 + 0x06010000;
+    dma3[1] = (u32) * (u16 *)(entry + 4) * 32 + OBJ_VRAM;
 
     dma3[2] = (*(u16 *)(entry + 6) << 4) | (0x80 << 24);
     dma3[2];
@@ -702,9 +702,9 @@ u32 ProcessHBlankWait(u32 idx) {
  */
 void StreamCmd_InitHBlankWait(void) {
     s16 timerVal;
-    u32 spAddr = 0x03004D84;
+    u32 spAddr = (u32)&gStreamPtr;
     register u8 **streamPP asm("r5");
-    u32 bAddr = 0x030052A4;
+    u32 bAddr = (u32)&gBuffer_52A4;
     register u8 **basePP asm("r6");
 
     asm("" : "=r"(streamPP) : "0"(spAddr));
