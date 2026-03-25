@@ -57,6 +57,27 @@
  * Used to verify the sound engine is properly initialized. */
 #define SAPPY_MAGIC        0x68736D53
 
+/* ── EEPROM / Timer Transfer ── */
+
+/* Index of the hardware timer (0-3) used for EEPROM transfers.
+ * Set by InitEepromTimer, read by EepromBeginTransfer/EepromEndTransfer. */
+#define gEepromTimerIdx    (*(vu8 *)0x03000378)
+
+/* Pointer to the active timer control register (REG_TM0CNT + idx*4).
+ * Updated by InitEepromTimer; used for direct timer register writes. */
+#define gEepromTimerRegPtr (*(vu32 *)0x03000380)
+
+/* Saved IME state, stored before disabling interrupts for EEPROM I/O. */
+#define gEepromSavedIME    (*(u16 *)0x03000384)
+
+/* EEPROM transfer state flag. Cleared at start, set on completion. */
+#define gEepromStateFlag   (*(u8 *)0x0300037C)
+
+/* GBA hardware register addresses. */
+#define REG_TM0CNT         0x04000100
+#define REG_IE             (*(vu16 *)0x04000200)
+#define REG_IME            (*(vu16 *)0x04000208)
+
 /* ── Input System ── */
 
 /* Current frame pressed keys (active-high, edge-detected).

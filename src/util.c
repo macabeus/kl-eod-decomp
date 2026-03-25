@@ -1,4 +1,5 @@
 #include "global.h"
+#include "globals.h"
 #include "include_asm.h"
 
 INCLUDE_ASM("asm/nonmatchings/util", SoftReset);
@@ -47,8 +48,8 @@ u32 InitEepromTimer(u8 timerIdx, u32 *callbackPtr) {
     if (timerIdx > 3)
         return 1;
 
-    *(u8 *)0x03000378 = timerIdx;
-    *(u32 *)0x03000380 = 0x04000100 + *(u8 *)0x03000378 * 4;
+    gEepromTimerIdx = timerIdx;
+    gEepromTimerRegPtr = REG_TM0CNT + gEepromTimerIdx * 4;
     *callbackPtr = (u32)EepromTimerCallback;
     return 0;
 }
@@ -60,7 +61,7 @@ INCLUDE_ASM("asm/nonmatchings/util", EepromBeginTransfer);
  * in REG_IE, and restores the saved IME state.
  */
 void EepromEndTransfer(void) {
-    vu32 *timerPtrAddr = (vu32 *)0x03000380;
+    vu32 *timerPtrAddr = &gEepromTimerRegPtr;
     u16 *timer = (u16 *)*timerPtrAddr;
     u16 zero = 0;
 
@@ -71,11 +72,11 @@ void EepromEndTransfer(void) {
     timer -= 1;
     *timerPtrAddr = (u32)timer;
 
-    *(vu16 *)0x04000208 = zero;
+    REG_IME = zero;
 
     {
-        vu16 *ie = (vu16 *)0x04000200;
-        u32 timerIdx = *(vu8 *)0x03000378;
+        vu16 *ie = &REG_IE;
+        u32 timerIdx = gEepromTimerIdx;
         u32 bit = 8;
         bit <<= timerIdx;
         {
@@ -85,7 +86,7 @@ void EepromEndTransfer(void) {
         }
     }
 
-    *(vu16 *)0x04000208 = *(vu16 *)0x03000384;
+    REG_IME = gEepromSavedIME;
 }
 INCLUDE_ASM("asm/nonmatchings/util", EepromDmaTransfer);
 INCLUDE_ASM("asm/nonmatchings/util", EepromReadSector);
