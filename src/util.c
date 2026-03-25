@@ -2,7 +2,25 @@
 #include "include_asm.h"
 
 INCLUDE_ASM("asm/nonmatchings/util", SoftReset);
-INCLUDE_ASM("asm/nonmatchings/util", FUN_0805146c);
+/**
+ * SelectTimerTableByMode: sets the timer/EEPROM transfer table pointer
+ * based on the given mode parameter.
+ *
+ * Mode 4 and default use 0x08188DE4, mode 0x40 uses 0x08188DF0.
+ * Returns 0 on recognized mode, 1 on default fallback.
+ */
+u32 SelectTimerTableByMode(u16 mode) {
+    u32 result = 0;
+    if (mode == 4) {
+        *(u32 *)0x030066F0 = 0x08188DE4;
+    } else if (mode == 0x40) {
+        *(u32 *)0x030066F0 = 0x08188DF0;
+    } else {
+        *(u32 *)0x030066F0 = 0x08188DE4;
+        result = 1;
+    }
+    return result;
+}
 extern vu16 gEepromTimer;
 extern vu8 gEepromReady;
 
