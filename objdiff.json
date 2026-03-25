@@ -1,0 +1,70 @@
+{
+  "min_version": "3.0.0",
+  "custom_make": "make",
+  "target_dir": "expected",
+  "base_dir": "build",
+  "build_target": true,
+  "watch_patterns": ["src/**/*.c", "include/**/*.h", "asm/**/*.s"],
+  "units": [
+    {
+      "name": "src/system",
+      "target_path": "expected/src/system.o",
+      "base_path": "build/src/system.o",
+      "metadata": { "source_path": "src/system.c" }
+    },
+    {
+      "name": "src/math",
+      "target_path": "expected/src/math.o",
+      "base_path": "build/src/math.o",
+      "metadata": { "source_path": "src/math.c" }
+    },
+    {
+      "name": "src/engine",
+      "target_path": "expected/src/engine.o",
+      "base_path": "build/src/engine.o",
+      "metadata": { "source_path": "src/engine.c" }
+    },
+    {
+      "name": "src/code_0",
+      "target_path": "expected/src/code_0.o",
+      "base_path": "build/src/code_0.o",
+      "metadata": { "source_path": "src/code_0.c" }
+    },
+    {
+      "name": "src/code_1",
+      "target_path": "expected/src/code_1.o",
+      "base_path": "build/src/code_1.o",
+      "metadata": { "source_path": "src/code_1.c" }
+    },
+    {
+      "name": "src/code_3",
+      "target_path": "expected/src/code_3.o",
+      "base_path": "build/src/code_3.o",
+      "metadata": { "source_path": "src/code_3.c" }
+    },
+    {
+      "name": "src/gfx",
+      "target_path": "expected/src/gfx.o",
+      "base_path": "build/src/gfx.o",
+      "metadata": { "source_path": "src/gfx.c" }
+    },
+    {
+      "name": "src/m4a",
+      "target_path": "expected/src/m4a.o",
+      "base_path": "build/src/m4a.o",
+      "metadata": { "source_path": "src/m4a.c" }
+    },
+    {
+      "name": "src/util",
+      "target_path": "expected/src/util.o",
+      "base_path": "build/src/util.o",
+      "metadata": { "source_path": "src/util.c" }
+    },
+    {
+      "name": "src/syscalls",
+      "target_path": "expected/src/syscalls.o",
+      "base_path": "build/src/syscalls.o",
+      "metadata": { "source_path": "src/syscalls.c" }
+    }
+  ]
+}
