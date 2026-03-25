@@ -3,6 +3,54 @@
 
 #include "global.h"
 
+/* ══════════════════════════════════════════════════════════════════════
+ *  Struct Definitions
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* BGLayerState: per-layer BG configuration (28 bytes, 3 entries at gBGLayerState).
+ * Controls VRAM destinations, scroll positions, tilemap dimensions, and DMA params. */
+struct BGLayerState {
+    u32 tileVramDest; /* +0x00: VRAM charblock address for tile DMA */
+    u32 tmapVramDest; /* +0x04: VRAM screenbase address for tilemap DMA */
+    u16 scrollX; /* +0x08: horizontal scroll position (subpixel, >>4 for pixels) */
+    u16 scrollY; /* +0x0A: vertical scroll position (subpixel, >>4 for pixels) */
+    u16 unk_0C; /* +0x0C: unknown */
+    u16 unk_0E; /* +0x0E: unknown */
+    u16 mapWidth; /* +0x10: tilemap width in tiles */
+    u16 mapHeight; /* +0x12: tilemap height in tiles */
+    u16 flags; /* +0x14: layer flags */
+    u16 dmaTileCount; /* +0x16: number of tile rows for DMA */
+    u8 dmaRowSize; /* +0x18: bytes per DMA row */
+    u8 pad_19; /* +0x19: padding */
+    u16 pad_1A; /* +0x1A: padding */
+}; /* total: 0x1C = 28 bytes */
+
+/* GfxStreamEntry: per-entry state for the graphics command stream processor
+ * (36 bytes, 32 entries at gBuffer_52A4).
+ * Controls animations, motion paths, and timed events driven by the stream. */
+struct GfxStreamEntry {
+    u8 status; /* +0x00: entry status (low 3 bits = type, bit 3+ = flags) */
+    u8 unk_01; /* +0x01: sub-flags (bit 7 = direction, bits 6:3 = speed) */
+    u8 unk_02; /* +0x02: secondary flags */
+    u8 unk_03; /* +0x03: bit 7 = sign flag (set from timer sign) */
+    u16 unk_04; /* +0x04: tile/frame base index */
+    u16 unk_06; /* +0x06: tile count / allocation size */
+    u16 unk_08; /* +0x08: counter / position A */
+    u16 unk_0A; /* +0x0A: counter / position B */
+    u16 unk_0C; /* +0x0C: frame index */
+    u16 unk_0E; /* +0x0E: unknown */
+    u16 unk_10; /* +0x10: unknown */
+    u16 unk_12; /* +0x12: unknown */
+    u16 unk_14; /* +0x14: timer value (s16, sign sets bit 7 of byte 3) */
+    u16 unk_16; /* +0x16: unknown */
+    u16 unk_18; /* +0x18: unknown */
+    u16 unk_1A; /* +0x1A: unknown */
+    u16 unk_1C; /* +0x1C: unknown */
+    u8 unk_1E; /* +0x1E: frame/animation state */
+    u8 unk_1F; /* +0x1F: frame/animation param */
+    u32 callback; /* +0x20: function pointer for per-frame update */
+}; /* total: 0x24 = 36 bytes */
+
 /* ── Graphics Stream ── */
 
 /* Pointer to the current position in the graphics/music data stream.
@@ -169,22 +217,12 @@ extern u8 gGameFlagsPtr[];
 /* UI/rendering state block (byte fields with 4-bit masks). */
 #define gUIRenderState     ((u8 *)0x030034B0)
 
-/* BG layer configuration struct array (3 entries, 0x1C=28 bytes each).
- * Each entry controls one hardware BG layer:
- *   +0x00: u32 tileVramDest   - VRAM charblock address for tile DMA
- *   +0x04: u32 tmapVramDest   - VRAM screenbase address for tilemap DMA
- *   +0x08: u16 scrollX        - horizontal scroll position (subpixel)
- *   +0x0A: u16 scrollY        - vertical scroll position (subpixel)
- *   +0x10: u16 mapWidth       - tilemap width in tiles
- *   +0x12: u16 mapHeight      - tilemap height in tiles
- *   +0x14: u16 flags
- *   +0x16: u16 dmaTileCount   - number of tile rows for DMA
- *   +0x18: u8  dmaRowSize     - bytes per DMA row
+/* BG layer configuration array (3 entries, see struct BGLayerState).
  * Initialized by InitLevelBG with charblock assignments:
  *   Entry 0: tileVram=0x06000000, tmapVram=0x0600E000
  *   Entry 1: tileVram=0x06004000, tmapVram=0x0600E800
  *   Entry 2: tileVram=0x06008000, tmapVram=0x0600F000 */
-#define gBGLayerState      ((u8 *)0x03003430)
+#define gBGLayerState      ((struct BGLayerState *)0x03003430)
 
 /* Decompress/DMA buffer control struct.
  * Holds pointers to allocated decompression buffers during scene setup.
