@@ -44,12 +44,22 @@ void FreeSoundStruct(void) {
     thunk_FUN_0800020c(*p);
 }
 /*
- * SoundReset: minimal sound state reset.
- * Clears active sound state without full reinitialization.
- *   23 lines, leaf function
- *   refs: gEntityArray (0x03000900)
+ * SoundReset: writes a tile value with palette bank 15 to screen buffer B.
+ *
+ * Computes the destination address as gScreenBufferA + 0x800 + (col + row*32)*2,
+ * ORs the tile value with 0xF000 (palette bank 15), and stores the halfword.
  */
-INCLUDE_ASM("asm/nonmatchings/m4a", SoundReset);
+void SoundReset(s16 col, s16 row, u16 tile) {
+    u32 bufAddr = 0x03000900;
+    register u8 *buf asm("r3");
+    u32 off;
+
+    asm("" : "=r"(buf) : "0"(bufAddr));
+    off = (u32)((col + row * 32) * 2);
+    buf += 0x800;
+    off += (u32)buf;
+    *(u16 *)off = tile | 0xF000;
+}
 /*
  * DmaControllerInit: full DMA initialization with channel config.
  * Sets up DMA for both Direct Sound channels (FIFO A and B).
