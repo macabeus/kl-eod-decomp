@@ -60,7 +60,7 @@ OBJS_REL := $(patsubst $(OBJ_DIR)/%,%,$(OBJS))
 
 ASFLAGS  := -mcpu=arm7tdmi -mthumb-interwork
 CPPFLAGS := -nostdinc -I tools/agbcc/include -iquote include
-CC1FLAGS := -mthumb-interwork -Wimplicit -Wparentheses -O2 -fhex-asm -fprologue-bugfix
+CC1FLAGS := -mthumb-interwork -Wimplicit -Wparentheses -O2 -fhex-asm -fprologue-bugfix -fno-fold-addr
 
 # TST compilation unit: m4a_1.c is pre-compiled with old_agbcc -ftst into
 # build/m4a_1_funcs.s, then included as assembly in m4a.c via asm(".include ...").
