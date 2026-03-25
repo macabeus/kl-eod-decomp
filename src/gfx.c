@@ -490,7 +490,21 @@ void DispatchStreamCommand_C0EC(void) {
     *gp = ptr + 3;
     LoadGfxStreamEntry(val, flag);
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", DmaSpriteToObjVram);
+/**
+ * DmaSpriteToObjVram: DMA sprite tile data from ROM to OBJ VRAM.
+ */
+void DmaSpriteToObjVram(u32 entryIdx, u32 frameIdx) {
+    vu32 *dma3 = (vu32 *)0x040000D4;
+    u32 base = *(vu32 *)0x030007C8;
+    u8 *entry = (u8 *)(entryIdx * 8 + base);
+    u16 tileCount = *(u16 *)(entry + 6);
+    dma3[0] = *(u32 *)entry + tileCount * (frameIdx << 5);
+
+    dma3[1] = (u32) * (u16 *)(entry + 4) * 32 + 0x06010000;
+
+    dma3[2] = (*(u16 *)(entry + 6) << 4) | (0x80 << 24);
+    dma3[2];
+}
 /**
  * StreamCmd_DmaSpriteData: reads sprite entry/frame from stream, DMAs to OBJ VRAM.
  */
