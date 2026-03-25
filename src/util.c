@@ -54,7 +54,59 @@ u32 InitEepromTimer(u8 timerIdx, u32 *callbackPtr) {
     *callbackPtr = (u32)EepromTimerCallback;
     return 0;
 }
-INCLUDE_ASM("asm/nonmatchings/util", EepromBeginTransfer);
+/**
+ * EepromBeginTransfer: starts an EEPROM transfer using a hardware timer.
+ *
+ * Saves IME, enables the timer interrupt, writes the transfer descriptor
+ * (size, timer value, timer control) to hardware registers.
+ */
+void EepromBeginTransfer(u16 *desc) {
+    u32 zeroVal = 0;
+    register u32 zero asm("r5");
+    u32 imeAddr = 0x04000208;
+    register vu16 *ime asm("r3");
+    u32 ieAddr = 0x04000200;
+    register vu16 *ie asm("r4");
+
+    {
+        u16 *savedPtr = &gEepromSavedIME;
+        asm("" : "=r"(ime) : "0"(imeAddr));
+        *savedPtr = *ime;
+    }
+    asm("" : "=r"(zero) : "0"(zeroVal));
+    *ime = zero;
+
+    asm("" : "=r"(ie) : "0"(ieAddr));
+    {
+        u32 tidxAddr = 0x03000378;
+        register u32 timerIdx asm("r1");
+        asm("" : "=r"(timerIdx) : "0"(tidxAddr));
+        timerIdx = *(vu8 *)timerIdx;
+        {
+            u32 bit = 8;
+            bit <<= timerIdx;
+            timerIdx = *ie;
+            timerIdx |= bit;
+            *ie = timerIdx;
+        }
+    }
+
+    *ime = 1;
+    gEepromStateFlag = zero;
+    *(u16 *)0x0300037A = desc[0];
+
+    desc++;
+    {
+        vu32 *timerPtrAddr = &gEepromTimerRegPtr;
+        u16 *timer = (u16 *)*timerPtrAddr;
+        *(vu16 *)timer = desc[0];
+        timer += 1;
+        *timerPtrAddr = (u32)timer;
+        *(vu16 *)timer = desc[1];
+        timer -= 1;
+        *timerPtrAddr = (u32)timer;
+    }
+}
 /**
  * EepromEndTransfer: disables the EEPROM timer and its interrupt.
  *
