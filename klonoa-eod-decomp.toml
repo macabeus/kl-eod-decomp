@@ -81,6 +81,7 @@ FUN_0804e884 = "EnableVBlankAndDispatchMusic"
 FUN_0804b270 = "ReadUnalignedU32"
 FUN_0804b424 = "DecompressAndDmaCopy"
 FUN_0805146c = "SelectTimerTableByMode"
+FUN_080514d4 = "InitEepromTimer"
 
 # Background graphics subsystem
 FUN_08001158 = "InitLevelBG"

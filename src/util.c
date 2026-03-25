@@ -36,7 +36,22 @@ void EepromTimerCallback(void) {
     }
     gEepromReady = 1;
 }
-INCLUDE_ASM("asm/nonmatchings/util", FUN_080514d4);
+/**
+ * InitEepromTimer: sets up a hardware timer for EEPROM transfer timing.
+ *
+ * Stores the timer index (0-3), computes the timer register address
+ * (REG_TM0CNT + index*4), and installs EepromTimerCallback.
+ * Returns 0 on success, 1 if timerIdx > 3.
+ */
+u32 InitEepromTimer(u8 timerIdx, u32 *callbackPtr) {
+    if (timerIdx > 3)
+        return 1;
+
+    *(u8 *)0x03000378 = timerIdx;
+    *(u32 *)0x03000380 = 0x04000100 + *(u8 *)0x03000378 * 4;
+    *callbackPtr = (u32)EepromTimerCallback;
+    return 0;
+}
 INCLUDE_ASM("asm/nonmatchings/util", EepromBeginTransfer);
 /**
  * EepromEndTransfer: disables the EEPROM timer and its interrupt.
