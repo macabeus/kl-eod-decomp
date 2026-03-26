@@ -626,7 +626,40 @@ void WriteStreamValue_Dual(void) {
 
     *gp += 4;
 }
-INCLUDE_ASM("asm/nonmatchings/gfx", UpdateCursorBlink);
+/**
+ * UpdateCursorBlink: updates cursor blink state based on frame counter.
+ *
+ * Copies 16 bytes of ROM cursor data to stack, then checks a flag
+ * at gSoundInfo+0x17 bit 1. If set, writes the alternating blink
+ * state (gControlBlock[4] >> 5 & 1) to gEntityArray + 0x17C.
+ * If clear, writes 0 to disable the blink.
+ */
+void FUN_08051b44(void *, const void *, u32);
+void UpdateCursorBlink(void) {
+    u8 buf[16];
+    FUN_08051b44(buf, (void *)0x081177E4, 0x10);
+
+    {
+        u8 flag = *((u8 *)(*(u32 *)&gSoundInfo) + 0x17) & 2;
+        if (flag != 0) {
+            u32 eAddr = (u32)gEntityArray;
+            u32 cAddr;
+            register u32 entityBase asm("r2");
+            u32 val;
+            u32 offset;
+            asm("" : "=r"(entityBase) : "0"(eAddr));
+            cAddr = (u32)gControlBlock;
+            val = (*(u32 *)(cAddr + 4) >> 5) & 1;
+            offset = 0x17C;
+            *(u8 *)(entityBase + offset) = val;
+        } else {
+            u32 entityBase = (u32)gEntityArray;
+            u32 offset = 0x17C;
+            asm("" : "+r"(entityBase));
+            *(u8 *)(entityBase + offset) = 0;
+        }
+    }
+}
 INCLUDE_ASM("asm/nonmatchings/gfx", ProcessAnimationSteps);
 INCLUDE_ASM("asm/nonmatchings/gfx", UpdateLinearInterpolation);
 INCLUDE_ASM("asm/nonmatchings/gfx", CalcSinCosVelocity);
