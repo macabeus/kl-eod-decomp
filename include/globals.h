@@ -249,9 +249,15 @@ extern u8 gGameFlagsPtr[];
  * Advanced by 0x20 after each 32-byte palette DMA during scene setup. */
 #define gVramWriteCursor   (*(u32 *)0x030007DC)
 
+/* Initial VRAM write cursor value, saved at stream init and restored on reset. */
+#define gVramCursorInit    (*(u32 *)0x030034F4)
+
 /* Palette VRAM write cursor: tracks current VRAM destination during
  * sequential tile/palette DMA transfers in scene setup. */
 #define gPaletteVramCursor (*(u32 *)0x03005490)
+
+/* Initial palette cursor value, saved at stream init and restored on reset. */
+#define gPaletteCursorInit (*(u32 *)0x030052AC)
 
 /* Pointer to decompressed collision/layout map data for current level. */
 #define gCollisionMapPtr   (*(u32 *)0x03005290)

@@ -51,6 +51,7 @@ start = 0x08051868
 # generate_asm.py renames the assembly label everywhere.
 
 [renames]
+FUN_08051b44 = "MemCopy"
 FUN_0804b254 = "ReadUnalignedU16"
 FUN_0804b260 = "ReadUnalignedS16"
 FUN_0804c844 = "WritePaletteColor"

@@ -634,10 +634,10 @@ void WriteStreamValue_Dual(void) {
  * state (gControlBlock[4] >> 5 & 1) to gEntityArray + 0x17C.
  * If clear, writes 0 to disable the blink.
  */
-void FUN_08051b44(void *, const void *, u32);
+void MemCopy(void *, const void *, u32);
 void UpdateCursorBlink(void) {
     u8 buf[16];
-    FUN_08051b44(buf, (void *)0x081177E4, 0x10);
+    MemCopy(buf, (void *)ROM_SOUND_INIT_DATA, 0x10);
 
     {
         u8 flag = *((u8 *)(*(u32 *)&gSoundInfo) + 0x17) & 2;
