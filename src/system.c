@@ -89,12 +89,43 @@ void ReadKeyInput(void) {
 INCLUDE_ASM("asm/nonmatchings/system", ProcessInputAndTimers);
 
 /**
- * LoadSpriteFrame: DMAs sprite frame data from ROM_TILESET_TABLE.
+ * LoadSpriteFrame: DMAs sprite frame data from ROM to OBJ VRAM.
  *
- * Uses level/world indices from gSceneControl to look up the sprite
- * tileset, DMAs the frame's tile data to a decompression buffer.
+ * Looks up the source tile data via ROM_SPRITE_SUBTABLE[tilesetIdx],
+ * computes the destination in OBJ VRAM from the frame index using
+ * ROM_TILESET_TABLE indexed by the current world/level, then DMAs
+ * 16 words (32-bit) to transfer the sprite tile data.
  */
-INCLUDE_ASM("asm/nonmatchings/system", LoadSpriteFrame);
+void LoadSpriteFrame(u8 frame, u8 tilesetIdx) {
+    vu32 *dma = (vu32 *)0x040000D4;
+    u32 tsAddr = ROM_SPRITE_SUBTABLE;
+    register u32 *tilesetTable asm("r2");
+    u32 spAddr = ROM_TILESET_TABLE;
+    register u32 *spriteTable asm("r5");
+
+    asm("" : "=r"(tilesetTable) : "0"(tsAddr));
+    dma[0] = tilesetTable[tilesetIdx];
+
+    asm("" : "=r"(spriteTable) : "0"(spAddr));
+
+    {
+        u32 sceneCtrl = (u32)gControlBlock;
+        u32 world = *(u8 *)(sceneCtrl + 0x0D) - 1;
+        u32 idx = world * 9;
+        sceneCtrl = *(u8 *)(sceneCtrl + 0x0C);
+        idx += sceneCtrl;
+        {
+            u32 *spriteData = (u32 *)spriteTable[idx];
+            u32 tileData = spriteData[1];
+
+            u16 tileIndex = *(u16 *)(tileData + (u32)frame * 8 - 0x68);
+            dma[1] = 0x06010000 + (u32)tileIndex * 32;
+        }
+    }
+
+    dma[2] = 0x80000010;
+    (void)dma[2];
+}
 
 /**
  * FreeAllDecompBuffers: frees all 6 decomp buffers + collision map.
