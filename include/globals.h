@@ -499,38 +499,38 @@ extern const struct Song gSongTable[];
 /* Sound command dispatch table.
  * Array of function pointers indexed by command byte. */
 extern const u32 gSoundCmdTable[];
-#define ROM_SOUND_CMD_TABLE  0x08117C8C
+#define ROM_SOUND_CMD_TABLE   0x08117C8C
 
 /* Instrument/voice table.
  * Contains waveform, envelope, and pitch data for each instrument. */
-#define ROM_INSTRUMENT_TABLE 0x081179E4
+#define ROM_INSTRUMENT_TABLE  0x081179E4
 
 /* Pitch/frequency lookup tables for MIDI note-to-frequency conversion. */
-#define ROM_FREQ_TABLE_1     0x08117A74
-#define ROM_FREQ_TABLE_2     0x08117B28
-#define ROM_PITCH_TABLE      0x08117B70
-#define ROM_WAVE_DUTY_TABLE  0x08117BF4
-#define ROM_NOISE_TABLE      0x08117C0C
-#define ROM_ENVELOPE_TABLE   0x08117C48
-#define ROM_SWEEP_TABLE      0x08117C58
+#define ROM_FREQ_TABLE_1      0x08117A74
+#define ROM_FREQ_TABLE_2      0x08117B28
+#define ROM_PITCH_TABLE       0x08117B70
+#define ROM_WAVE_DUTY_TABLE   0x08117BF4
+#define ROM_NOISE_TABLE       0x08117C0C
+#define ROM_ENVELOPE_TABLE    0x08117C48
+#define ROM_SWEEP_TABLE       0x08117C58
 
 /* Sound configuration init data. */
-#define ROM_SOUND_INIT_DATA  0x081177E4
+#define ROM_SOUND_INIT_DATA   0x081177E4
 
 /* ── Camera / Scroll State ── */
 
 /* Camera state struct (accessed with s16 fields at various offsets).
  * Offset +0x0C low nibble = camera mode index (0-7, switch in CameraModeSwitchHandler).
  * Used by UpdateScrollPosition, UpdatePlayer*, CameraModeSwitchHandler. */
-#define gCameraState           ((u8 *)0x030007E0)
+#define gCameraState          ((u8 *)0x030007E0)
 
 /* Camera/scroll limits computed from level dimensions.
  * Used by UpdateScrollPosition, ComputeScrollLimits, InitLevelState. */
-#define gScrollLimits          ((u8 *)0x030007CC)
+#define gScrollLimits         ((u8 *)0x030007CC)
 
 /* Main loop state flag: controls game loop flow in MainGameFrameLoop.
  * Checked at loop entry and after transitions. */
-#define gMainLoopState         (*(u8 *)0x030007F8)
+#define gMainLoopState        (*(u8 *)0x030007F8)
 
 /* ── BG2 Affine Transform Shadows ── */
 /* These IWRAM values are written to hardware registers during VBlank:
@@ -540,30 +540,30 @@ extern const u32 gSoundCmdTable[];
  *   gBG2PD → REG_BG2PD (0x04000026) — vertical scale / cos(angle)
  *   gBG2X  → REG_BG2X  (0x04000028) — reference point X (32-bit fixed-point)
  *   gBG2Y  → REG_BG2Y  (0x0400002C) — reference point Y (32-bit fixed-point) */
-#define gBG2PA                 (*(u16 *)0x030047B0)
-#define gBG2PB                 (*(u16 *)0x03005464)
-#define gBG2PC                 (*(u16 *)0x030051BC)
-#define gBG2PD                 (*(u16 *)0x03000808)
-#define gBG2X                  (*(u32 *)0x030007FC)
-#define gBG2Y                  (*(u32 *)0x030051D0)
+#define gBG2PA                (*(u16 *)0x030047B0)
+#define gBG2PB                (*(u16 *)0x03005464)
+#define gBG2PC                (*(u16 *)0x030051BC)
+#define gBG2PD                (*(u16 *)0x03000808)
+#define gBG2X                 (*(u32 *)0x030007FC)
+#define gBG2Y                 (*(u32 *)0x030051D0)
 
 /* ── Scene / Transition State ── */
 
 /* Scene fade/blend counter: decremented by 0x10 each frame during transitions.
  * Used by TransitionInitLevelMusic, TransitionFadeOut*, GameplayFrameInit. */
-#define gSceneFadeCounter      (*(u16 *)0x03005210)
+#define gSceneFadeCounter     (*(u16 *)0x03005210)
 
 /* Scene/gfx state struct: used by InitGfxState, InitFadeTransition,
  * MainGameFrameLoop, PlayerMovementPhysics. Part of the graphics pipeline state. */
-#define gGfxSceneState         ((u8 *)0x03004D90)
+#define gGfxSceneState        ((u8 *)0x03004D90)
 
 /* Scene script / title sequence state.
  * Used by RunSceneScript, RunTitleSequence. */
-#define gSceneScriptState      ((u8 *)0x03005488)
+#define gSceneScriptState     (*(u32 *)0x03005488)
 
 /* Cutscene/credits animation state.
  * Used by VBlankCallback_Credits, VBlankCallback_Cutscene, TransitionFadeOutWithMusic. */
-#define gCutsceneState         ((u8 *)0x030051C8)
+#define gCutsceneState        ((u8 *)0x030051C8)
 
 /* ── Entity Subsystem (extended) ── */
 
@@ -571,54 +571,54 @@ extern const u32 gSoundCmdTable[];
  * +0x00: entity count A, +0x01: entity count B,
  * +0x02: palette anim slot, +0x03: palette anim param.
  * Used by SpawnEntityAtPosition, EntityBehaviorMasterUpdate, EntitySpriteFrameUpdate. */
-#define gEntitySpawnState      ((u8 *)0x03003610)
+#define gEntitySpawnState     ((u8 *)0x03003610)
 
 /* Entity collision/physics lookup table: indexed by entity slot offset.
  * Used by EntityGravityAndFloorCheck, PlayerMainUpdate, SetupOAMSprite. */
-#define gEntityCollisionTable  ((u8 *)0x03000790)
+#define gEntityCollisionTable ((u8 *)0x03000790)
 
 /* Entity death/hit reaction state.
  * Used by EntityDeathAnimation, EntityHitReaction, SpawnEntityAtPosition. */
-#define gEntityDeathState      ((u8 *)0x0300528C)
+#define gEntityDeathState     ((u8 *)0x0300528C)
 
 /* OAM sprite processing state byte: compared against 0xFE sentinel.
  * Used by ProcessOamSpriteLayout, HandlePauseMenuInput, InitLevelBG,
  * UpdateScrollPosition, UpdateStageSelectScreen. */
-#define gOamProcessState       (*(u8 *)0x030052A0)
+#define gOamProcessState      (*(u8 *)0x030052A0)
 
 /* ── Palette / Visual Effects ── */
 
 /* Palette animation state buffer.
  * Used by AnimatePaletteEffects, InitGfxState, PlayerMovementPhysics. */
-#define gPaletteAnimState      ((u8 *)0x030051F0)
+#define gPaletteAnimState     ((u8 *)0x030051F0)
 
 /* ── Gameplay / UI State (extended) ── */
 
 /* Gameplay mode/sub-state: byte accessed with DMA multiplier (×0x800).
  * Used by ProcessInputAndUpdateEntities, UpdateUIState, HandlePauseMenuInput,
  * AnimatePaletteEffects. Controls OAM DMA source selection. */
-#define gGameplayMode          (*(u8 *)0x030034BC)
+#define gGameplayMode         (*(u8 *)0x030034BC)
 
 /* Gameplay mode secondary state.
  * Used alongside gGameplayMode by ProcessInputAndUpdateEntities, InitGameplayState. */
-#define gGameplayModeAlt       ((u8 *)0x030034C0)
+#define gGameplayModeAlt      ((u8 *)0x030034C0)
 
 /* ── Save System ── */
 
 /* Save data buffer pointers: four IWRAM addresses used together by
  * SaveGameWithVerify, SavePlayerProgress, SaveGameRetryLoop.
  * Each holds a pointer or buffer for EEPROM read/write operations. */
-#define gSaveBuffer0           (*(u32 *)0x0300520C)
-#define gSaveBuffer1           (*(u32 *)0x03005208)
-#define gSaveBuffer2           (*(u32 *)0x0300465C)
-#define gSaveBuffer3           (*(u32 *)0x030008E4)
+#define gSaveBuffer0          (*(u32 *)0x0300520C)
+#define gSaveBuffer1          (*(u32 *)0x03005208)
+#define gSaveBuffer2          (*(u32 *)0x0300465C)
+#define gSaveBuffer3          (*(u32 *)0x030008E4)
 
 /* ── Sound / DMA (extended) ── */
 
 /* GBA BIOS sound info pointer at 0x03007FF0.
  * Standard m4a/MusicPlayer2000 location for SoundArea struct.
  * Used by InitSoundEngine, SoundHardwareInit, DirectSoundFifoSetup, CgbChannelMix. */
-#define gBiosSoundInfo         (*(u32 *)0x03007FF0)
+#define gBiosSoundInfo        (*(u32 **)0x03007FF0)
 
 /* ── Entity Data Tables ── */
 
@@ -626,16 +626,16 @@ extern const u32 gSoundCmdTable[];
  * Used by GetEntityLookupData to read behavior parameters.
  * Offset +5: param A, offset +6: param B. */
 extern const u8 gEntityDataTable[];
-#define ROM_ENTITY_DATA_TABLE 0x081168E8
+#define ROM_ENTITY_DATA_TABLE   0x081168E8
 
 /* Entity animation/behavior data table (172 refs, most-referenced unnamed ROM address).
  * Halfword-indexed: value >> 2 + 0xC0 or byte + 0x40, scaled ×2.
  * Used by EntityBoss*, FUN_080158ac, FUN_0801af28, and many entity behavior functions. */
-#define ROM_ENTITY_ANIM_TABLE    0x080D8E14
+#define ROM_ENTITY_ANIM_TABLE   0x080D8E14
 
 /* Entity sprite attribute table (129 refs).
  * Used by PlayerFollowEntityMovement and entity rendering.
  * Adjacent to ROM_OAM_TEMPLATE (0x080E2A7C), likely extended OAM data. */
-#define ROM_ENTITY_SPRITE_TABLE  0x080E2B64
+#define ROM_ENTITY_SPRITE_TABLE 0x080E2B64
 
 #endif /* GUARD_GLOBALS_H */

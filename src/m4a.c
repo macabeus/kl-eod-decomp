@@ -622,7 +622,7 @@ void m4aSoundMode(u32 mode) {
     u32 magic;
     u32 temp;
 
-    soundInfo = *(u32 **)0x03007FF0;
+    soundInfo = gBiosSoundInfo;
     magic = soundInfo[0];
 
     if (magic != SAPPY_MAGIC)
@@ -697,7 +697,7 @@ void m4aSoundMode(u32 mode) {
  * Restores SAPPY_MAGIC on exit.
  */
 void SoundClear(void) {
-    u32 **soundInfoRef = (u32 **)0x03007FF0;
+    u32 **soundInfoRef = &gBiosSoundInfo;
     u32 *soundInfo;
     u32 magic;
     s32 channelIdx;
@@ -748,7 +748,7 @@ void SoundClear(void) {
  */
 void m4aSoundVSyncOff(void) {
     u32 scratch;
-    u32 *info = *(u32 **)0x03007FF0;
+    u32 *info = gBiosSoundInfo;
     u32 magic = info[0];
     vu32 *dmaReg;
 
@@ -782,7 +782,7 @@ void m4aSoundVSyncOff(void) {
  *   refs: REG_SOUNDCNT_H (0x040000C6)
  */
 void m4aSoundVSyncOn(void) {
-    u32 *info = *(u32 **)0x03007FF0;
+    u32 *info = gBiosSoundInfo;
     u32 magic = info[0];
     u8 scratch;
     if (magic == SAPPY_MAGIC)
@@ -816,7 +816,7 @@ void MPlayOpen(u32 *mplayInfo, u8 *tracks, u8 trackCount) {
     if (trackCount > 16)
         trackCount = 16;
 
-    soundInfo = *(u32 **)0x03007FF0;
+    soundInfo = gBiosSoundInfo;
     ident = soundInfo[0];
 
     if (ident != SAPPY_MAGIC)

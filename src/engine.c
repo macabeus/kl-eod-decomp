@@ -34,7 +34,7 @@ INCLUDE_ASM("asm/nonmatchings/engine", UpdateAffineBGParams);
  */
 void UpdateWindowCircleEffect(void) {
     u16 vcount = *(volatile u16 *)0x04000006;
-    u32 radius = *(u32 *)0x03005488;
+    u32 radius = gSceneScriptState;
     u32 half_r = radius >> 1;
     s32 y = vcount - half_r;
     s32 y_adj = y + 12;
