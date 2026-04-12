@@ -1,0 +1,11 @@
+functionName: ply_lfos
+targetObjectPath: /Users/macabeus/ApenasMeu/decompiler/klonoa-empire-of-dreams/build/src/m4a.o
+asm: |
+  	non_word_aligned_thumb_func_start ply_lfos
+  ply_lfos: @ 08051402
+  	ldr r0, [r1, #0x40]
+  	ldrb r2, [r0, #0x00]
+  	strb r2, [r1, #0x1F]
+  	adds r0, #0x01
+  	str r0, [r1, #0x40]
+  	bx lr

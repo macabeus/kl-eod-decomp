@@ -1,0 +1,12 @@
+functionName: Abs
+targetObjectPath: /Users/macabeus/ApenasMeu/decompiler/klonoa-empire-of-dreams/build/src/system.o
+asm: |
+  	thumb_func_start Abs
+  Abs: @ 0800043C
+  	cmp r0, #0x00
+  	bpl _08000444
+  	movs r1, #0x00
+  	subs r0, r1, r0
+  _08000444:
+  	bx lr
+  	lsls r0, r0, #0x00

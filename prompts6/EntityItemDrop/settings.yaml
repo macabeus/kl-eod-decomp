@@ -1,0 +1,195 @@
+functionName: EntityItemDrop
+targetObjectPath: /Users/macabeus/ApenasMeu/decompiler/klonoa-empire-of-dreams/build/src/code_1.o
+asm: |
+  	non_word_aligned_thumb_func_start EntityItemDrop
+  EntityItemDrop: @ 0801F4D0
+  	push {r4, r5, lr}
+  	lsls r0, r0, #0x18
+  	lsrs r4, r0, #0x18
+  	movs r1, #0xE4
+  	lsls r1, r1, #0x18
+  	adds r0, r0, r1
+  	lsrs r5, r0, #0x18
+  	ldr r0, [pc, #0x01C] @ =0x03005400
+  	ldrb r0, [r0, #0x0A]
+  	cmp r0, #0x01
+  	bne _0801F504
+  	ldr r1, [pc, #0x018] @ =0x03002920
+  	lsls r0, r4, #0x03
+  	subs r0, r0, r4
+  	lsls r0, r0, #0x02
+  	adds r0, r0, r1
+  	movs r2, #0x00
+  	movs r1, #0x1C
+  	strb r1, [r0, #0x0F]
+  	strb r2, [r0, #0x10]
+  	.2byte 0xE0A1 @ b _0801F63E
+  	lsls r0, r0, #0x00
+  	.4byte 0x03005400
+  	.4byte 0x03002920
+  _0801F504:
+  	ldr r0, [pc, #0x018] @ =0x03002920
+  	lsls r2, r4, #0x03
+  	subs r1, r2, r4
+  	lsls r1, r1, #0x02
+  	adds r3, r1, r0
+  	ldrb r1, [r3, #0x0F]
+  	mov r12, r0
+  	cmp r1, #0x03
+  	beq _0801F52A
+  	cmp r1, #0x03
+  	bgt _0801F524
+  	cmp r1, #0x00
+  	beq _0801F5FC
+  	.2byte 0xE08E @ b _0801F63E
+  	.4byte 0x03002920
+  _0801F524:
+  	cmp r1, #0x04
+  	beq _0801F590
+  	.2byte 0xE089 @ b _0801F63E
+  _0801F52A:
+  	movs r0, #0x00
+  	strb r0, [r3, #0x0F]
+  	strh r0, [r3, #0x14]
+  	movs r0, #0x01
+  	strb r0, [r3, #0x10]
+  	ldrb r1, [r3, #0x0C]
+  	subs r0, #0x05
+  	ands r0, r1
+  	strb r0, [r3, #0x0C]
+  	movs r0, #0x81
+  	lsls r0, r0, #0x02
+  	add r0, r12
+  	ldrb r0, [r0, #0x00]
+  	lsls r0, r0, #0x1C
+  	lsrs r0, r0, #0x1E
+  	cmp r0, #0x00
+  	bne _0801F558
+  	movs r0, #0xFC
+  	lsls r0, r0, #0x01
+  	add r0, r12
+  	ldrh r0, [r0, #0x00]
+  	adds r0, #0x10
+  	.2byte 0xE004 @ b _0801F562
+  _0801F558:
+  	movs r0, #0xFC
+  	lsls r0, r0, #0x01
+  	add r0, r12
+  	ldrh r0, [r0, #0x00]
+  	subs r0, #0x10
+  	strh r0, [r3, #0x00]
+  	subs r1, r2, r4
+  	lsls r1, r1, #0x02
+  	add r1, r12
+  	movs r0, #0xFD
+  	lsls r0, r0, #0x01
+  	add r0, r12
+  	ldrh r0, [r0, #0x00]
+  	strh r0, [r1, #0x02]
+  	ldr r2, [pc, #0x014] @ =0x080E2ADE
+  	lsls r3, r5, #0x01
+  	adds r0, r3, r2
+  	ldrb r0, [r0, #0x00]
+  	strb r0, [r1, #0x08]
+  	adds r2, #0x01
+  	adds r3, r3, r2
+  	ldrb r0, [r3, #0x00]
+  	strb r0, [r1, #0x09]
+  	movs r0, #0x04
+  	strb r0, [r1, #0x16]
+  	.2byte 0xE058 @ b _0801F63E
+  	.4byte 0x080E2ADE
+  _0801F590:
+  	movs r0, #0x00
+  	strb r0, [r3, #0x0F]
+  	strh r0, [r3, #0x14]
+  	movs r0, #0x01
+  	strb r0, [r3, #0x10]
+  	ldrb r1, [r3, #0x0C]
+  	subs r0, #0x05
+  	ands r0, r1
+  	strb r0, [r3, #0x0C]
+  	movs r0, #0x81
+  	lsls r0, r0, #0x02
+  	add r0, r12
+  	ldrb r0, [r0, #0x00]
+  	lsls r0, r0, #0x1C
+  	lsrs r0, r0, #0x1E
+  	cmp r0, #0x00
+  	bne _0801F5BE
+  	movs r0, #0xFC
+  	lsls r0, r0, #0x01
+  	add r0, r12
+  	ldrh r0, [r0, #0x00]
+  	adds r0, #0x10
+  	.2byte 0xE004 @ b _0801F5C8
+  _0801F5BE:
+  	movs r0, #0xFC
+  	lsls r0, r0, #0x01
+  	add r0, r12
+  	ldrh r0, [r0, #0x00]
+  	subs r0, #0x10
+  	strh r0, [r3, #0x00]
+  	subs r1, r2, r4
+  	lsls r1, r1, #0x02
+  	add r1, r12
+  	movs r0, #0xFD
+  	lsls r0, r0, #0x01
+  	add r0, r12
+  	ldrh r0, [r0, #0x00]
+  	strh r0, [r1, #0x02]
+  	ldr r2, [pc, #0x01C] @ =0x080E2ADE
+  	lsls r3, r5, #0x01
+  	adds r0, r2, #0x0
+  	adds r0, #0x0A
+  	adds r0, r3, r0
+  	ldrb r0, [r0, #0x00]
+  	strb r0, [r1, #0x08]
+  	adds r2, #0x0B
+  	adds r3, r3, r2
+  	ldrb r0, [r3, #0x00]
+  	strb r0, [r1, #0x09]
+  	movs r0, #0x02
+  	strb r0, [r1, #0x16]
+  	.2byte 0xE023 @ b _0801F63E
+  	lsls r0, r0, #0x00
+  	.4byte 0x080E2ADE
+  _0801F5FC:
+  	movs r2, #0x09
+  	ldsb r2, [r3, r2]
+  	ldr r1, [pc, #0x040] @ =0x080D8E14
+  	ldrh r0, [r3, #0x14]
+  	lsls r0, r0, #0x01
+  	adds r0, r0, r1
+  	movs r1, #0x00
+  	ldsh r0, [r0, r1]
+  	adds r1, r2, #0x0
+  	muls r1, r0
+  	asrs r1, r1, #0x08
+  	movs r2, #0x86
+  	lsls r2, r2, #0x01
+  	adds r0, r2, #0x0
+  	subs r0, r0, r1
+  	strh r0, [r3, #0x02]
+  	movs r0, #0x08
+  	ldsb r0, [r3, r0]
+  	ldrh r1, [r3, #0x00]
+  	adds r0, r0, r1
+  	strh r0, [r3, #0x00]
+  	ldrb r1, [r3, #0x16]
+  	ldrh r0, [r3, #0x14]
+  	adds r0, r0, r1
+  	strh r0, [r3, #0x14]
+  	lsls r0, r0, #0x10
+  	lsrs r0, r0, #0x10
+  	cmp r0, #0x88
+  	bne _0801F63E
+  	movs r0, #0x1C
+  	strb r0, [r3, #0x0F]
+  	movs r0, #0x00
+  	strb r0, [r3, #0x10]
+  _0801F63E:
+  	pop {r4, r5}
+  	pop {r0}
+  	bx r0
+  	.4byte 0x080D8E14

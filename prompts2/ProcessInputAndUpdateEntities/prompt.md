@@ -1,0 +1,826 @@
+You are decompiling an assembly function called `ProcessInputAndUpdateEntities` in ARMv4T from a Game Boy Advance game.
+
+
+
+
+
+
+
+# Declarations for the functions called from the target assembly
+
+- `void thunk_FUN_0800020c(u32);`
+- `void m4aSongNumStart(u32);`
+- `void InitOamEntries(void);`
+- `void m4aSoundVSyncOff(void);`
+
+
+
+# Context from runtime analysis
+
+## What this function does
+
+Main per-frame update function that processes controller input and dispatches entity/game-state updates. Called from the game's main loop. It reads input state, manages scene transitions (via a state byte at `gUIRenderState + 0x07`), and drives the entity update pipeline.
+
+The function is large (~750 lines of assembly) with a state-machine structure: it reads a mode byte, then branches to different code paths for gameplay, menus, cutscenes, and transitions. Each path may call sound functions (`m4aSongNumStart`, `m4aSoundVSyncOn`, `StopSoundEffects`), initialize graphics (`InitOamEntries`, `FreeAllDecompBuffers`), or set up DMA transfers (`0x040000D4`).
+
+## Memory map (relevant addresses)
+
+- `0x030034B0` — `gUIRenderState`: UI/rendering state buffer. Byte at `+0x07` is the current mode/state.
+- `0x03004C20` — `gControlBlock`: game control block with scene/level parameters. `+0x0D` = current world.
+- `0x03005220` — `gGameStateArray`: per-entity game state (50 entries matching the dispatch table at `0x08116620`).
+- `0x03003510` — `gMixedState`: shared state buffer used by scene init code.
+- `0x03004DA0` — `gKeysPressed`: current frame button state.
+- `0x03003430` — `gBGLayerState`: BG layer scroll/control state.
+- `0x03000900` — `gScreenBufferA`: EWRAM tile buffer base.
+- `0x03004790` — `gDecompBufferCtrl`: decompression buffer control.
+- `0x03005498` — `gFrameCounter`: frame counter byte.
+- `0x081166F8` — ROM data table used for entity/scene initialization.
+- `0x082EC8F4` / `0x082ECD74` — ROM tileset data for scene graphics.
+
+## System architecture
+
+The game loop calls `GameUpdate` → subsystem updates. This function handles the input processing and entity dispatch layer. It references the 50-entry entity dispatch table at ROM `0x08116620`, which maps entity type IDs to VBlank DMA handlers (`VBlankDMA_Level1` through `VBlankDMA_Level27`) and level loaders (`LoadLevel_World*_Vision*`).
+
+# Primary Objective
+
+Decompile the following target assembly function from `asm/nonmatchings/code_3/ProcessInputAndUpdateEntities.s` into clean, readable C code that compiles to an assembly matching EXACTLY the original one.
+
+```asm
+	non_word_aligned_thumb_func_start ProcessInputAndUpdateEntities
+ProcessInputAndUpdateEntities: @ 0803A410
+	push {r4, r5, r6, r7, lr}
+	mov r7, r10
+	mov r6, r9
+	mov r5, r8
+	push {r5, r6, r7}
+	add sp, #-0x00C
+	ldr r0, _0803A50C @ =0x03004DA0
+	ldrh r2, [r0, #0x00]
+	movs r1, #0x0A
+	ands r1, r2
+	negs r0, r1
+	orrs r0, r1
+	lsrs r0, r0, #0x1F
+	str r0, [sp, #0x004]
+	movs r0, #0x01
+	ands r0, r2
+	cmp r0, #0x00
+	.2byte 0xD006 @ beq _0803A442
+	ldr r0, _0803A510 @ =0x03004658
+	ldr r0, [r0, #0x00]
+	ldrb r0, [r0, #0x0C]
+	adds r0, #0x01
+	lsls r0, r0, #0x18
+	lsrs r0, r0, #0x18
+	str r0, [sp, #0x004]
+	movs r0, #0xC0
+	ands r0, r2
+	cmp r0, #0x00
+	.2byte 0xD100 @ bne _0803A44C
+	b _0803A69E
+	movs r5, #0x00
+	ldr r3, _0803A510 @ =0x03004658
+	ldr r0, [pc, #0x0C0] @ =0x030034BC
+	ldr r1, [pc, #0x0C4] @ =0x030034C0
+	mov r9, r1
+	mov r4, sp
+	movs r7, #0x00
+	ldr r2, [pc, #0x0C0] @ =0x040000D4
+	ldrb r1, [r0, #0x00]
+	lsls r1, r1, #0x0B
+	ldr r0, [pc, #0x0BC] @ =0x03000A4A
+	adds r6, r1, r0
+	mov r12, r6
+	adds r0, #0x24
+	adds r1, r1, r0
+	mov r8, r1
+	ldr r3, [r3, #0x00]
+	ldr r6, [pc, #0x0B4] @ =0x81000002
+	strh r7, [r4, #0x00]
+	mov r0, sp
+	str r0, [r2, #0x00]
+	ldrb r1, [r3, #0x0C]
+	lsls r0, r1, #0x01
+	adds r0, r0, r1
+	adds r0, r5, r0
+	lsls r0, r0, #0x06
+	add r0, r12
+	str r0, [r2, #0x04]
+	str r6, [r2, #0x08]
+	ldr r0, [r2, #0x08]
+	strh r7, [r4, #0x00]
+	mov r1, sp
+	str r1, [r2, #0x00]
+	ldrb r1, [r3, #0x0C]
+	lsls r0, r1, #0x01
+	adds r0, r0, r1
+	adds r0, r5, r0
+	lsls r0, r0, #0x06
+	add r0, r8
+	str r0, [r2, #0x04]
+	str r6, [r2, #0x08]
+	ldr r0, [r2, #0x08]
+	adds r0, r5, #0x1
+	lsls r0, r0, #0x18
+	lsrs r5, r0, #0x18
+	cmp r5, #0x01
+	.2byte 0xD9E2 @ bls _0803A470
+	mov r2, r9
+	ldrb r0, [r2, #0x00]
+	cmp r0, #0x00
+	.2byte 0xD001 @ beq _0803A4B6
+	cmp r0, #0x02
+	.2byte 0xD138 @ bne _0803A528
+	ldr r0, _0803A50C @ =0x03004DA0
+	ldrh r1, [r0, #0x00]
+	movs r0, #0x80
+	.thumb_func
+FUN_0803a4bc: @ 0803A4BC
+	ands r0, r1
+	cmp r0, #0x00
+	beq _0803A4DE
+	movs r0, #0x51
+	bl m4aSongNumStart
+	ldr r2, _0803A510 @ =0x03004658
+	ldr r1, [r2, #0x00]
+	ldrb r0, [r1, #0x0C]
+	adds r0, #0x01
+	strb r0, [r1, #0x0C]
+	ldr r2, [r2, #0x00]
+	ldrb r0, [r2, #0x0C]
+	cmp r0, #0x03
+	bls _0803A4DE
+	movs r0, #0x00
+	strb r0, [r2, #0x0C]
+_0803A4DE:
+	ldr r0, _0803A50C @ =0x03004DA0
+	ldrh r1, [r0, #0x00]
+	movs r0, #0x40
+	ands r0, r1
+	cmp r0, #0x00
+	beq _0803A57C
+	movs r0, #0x51
+	bl m4aSongNumStart
+	ldr r2, _0803A510 @ =0x03004658
+	ldr r1, [r2, #0x00]
+	ldrb r0, [r1, #0x0C]
+	subs r0, #0x01
+	strb r0, [r1, #0x0C]
+	ldr r2, [r2, #0x00]
+	ldrb r1, [r2, #0x0C]
+	movs r0, #0x80
+	ands r0, r1
+	cmp r0, #0x00
+	beq _0803A57C
+	movs r0, #0x03
+	b _0803A57A
+	lsls r0, r0, #0x00
+_0803A50C: .4byte 0x03004DA0
+_0803A510: .4byte 0x03004658
+	.4byte 0x030034BC
+	.4byte 0x030034C0
+	lsls r4, r2, #0x03
+	lsls r0, r0, #0x10
+	.4byte 0x03000A4A
+	lsls r2, r0, #0x00
+	strh r0, [r0, #0x08]
+	ldr r0, [pc, #0x0E4] @ =0x03004DA0
+	ldrh r1, [r0, #0x00]
+	movs r0, #0x80
+	ands r0, r1
+	cmp r0, #0x00
+	.2byte 0xD00D @ beq _0803A550
+	movs r0, #0x51
+	bl m4aSongNumStart
+	ldr r2, _0803A614 @ =0x03004658
+	ldr r1, [r2, #0x00]
+	ldrb r0, [r1, #0x0C]
+	adds r0, #0x01
+	strb r0, [r1, #0x0C]
+	ldr r2, [r2, #0x00]
+	ldrb r0, [r2, #0x0C]
+	cmp r0, #0x02
+	.2byte 0xD901 @ bls _0803A550
+	movs r0, #0x00
+	strb r0, [r2, #0x0C]
+	ldr r0, [pc, #0x0BC] @ =0x03004DA0
+	ldrh r1, [r0, #0x00]
+	movs r0, #0x40
+	ands r0, r1
+	cmp r0, #0x00
+	beq _0803A57C
+	movs r0, #0x51
+	bl m4aSongNumStart
+	ldr r2, _0803A614 @ =0x03004658
+	ldr r1, [r2, #0x00]
+	ldrb r0, [r1, #0x0C]
+	subs r0, #0x01
+	strb r0, [r1, #0x0C]
+	ldr r2, [r2, #0x00]
+	ldrb r1, [r2, #0x0C]
+	movs r0, #0x80
+	ands r0, r1
+	cmp r0, #0x00
+	beq _0803A57C
+	movs r0, #0x02
+_0803A57A:
+	strb r0, [r2, #0x0C]
+_0803A57C:
+	movs r5, #0x00
+	ldr r3, _0803A618 @ =0x030034BC
+	mov r8, r3
+	ldr r6, _0803A61C @ =0x03000900
+	mov r12, r6
+	ldr r7, _0803A614 @ =0x03004658
+	mov r10, r7
+_0803A58A:
+	movs r4, #0x00
+	adds r0, r5, #0x1
+	mov r9, r0
+	lsls r0, r5, #0x04
+	subs r0, r0, r5
+	lsls r0, r0, #0x01
+	str r0, [sp, #0x008]
+_0803A598:
+	mov r1, r8
+	ldrb r0, [r1, #0x00]
+	cmp r0, #0x00
+	bne _0803A628
+	mov r2, r10
+	ldr r3, [r2, #0x00]
+	ldrb r0, [r3, #0x0C]
+	lsls r1, r0, #0x01
+	adds r1, r1, r0
+	adds r1, r5, r1
+	lsls r1, r1, #0x05
+	adds r0, r4, #0x0
+	adds r0, #0xA5
+	adds r1, r1, r0
+	lsls r1, r1, #0x01
+	mov r6, r8
+	ldrb r0, [r6, #0x00]
+	lsls r0, r0, #0x0B
+	adds r1, r1, r0
+	add r1, r12
+	ldr r7, _0803A620 @ =0x03004790
+	ldr r0, [r7, #0x1C]
+	ldr r6, [sp, #0x008]
+	adds r2, r6, r4
+	lsls r2, r2, #0x01
+	adds r0, r2, r0
+	movs r7, #0x9D
+	lsls r7, r7, #0x01
+	adds r0, r0, r7
+	ldrh r0, [r0, #0x00]
+	ldr r6, _0803A624 @ =0x03000800
+	ldrb r6, [r6, #0x00]
+	adds r0, r0, r6
+	strh r0, [r1, #0x00]
+	ldrb r0, [r3, #0x0C]
+	lsls r1, r0, #0x01
+	adds r1, r1, r0
+	adds r1, r5, r1
+	lsls r1, r1, #0x05
+	adds r0, r4, #0x0
+	adds r0, #0xB7
+	adds r1, r1, r0
+	lsls r1, r1, #0x01
+	mov r7, r8
+	.thumb_func
+FUN_0803a5f0: @ 0803A5F0
+	ldrb r0, [r7, #0x00]
+	lsls r0, r0, #0x0B
+	adds r1, r1, r0
+	add r1, r12
+	ldr r3, _0803A620 @ =0x03004790
+	ldr r0, [r3, #0x1C]
+	adds r2, r2, r0
+	movs r6, #0xAF
+	lsls r6, r6, #0x01
+	adds r0, r2, r6
+	ldrh r0, [r0, #0x00]
+	ldr r7, _0803A624 @ =0x03000800
+	ldrb r7, [r7, #0x00]
+	adds r0, r0, r7
+	b _0803A686
+	lsls r0, r0, #0x00
+	.4byte 0x03004DA0
+_0803A614: .4byte 0x03004658
+_0803A618: .4byte 0x030034BC
+_0803A61C: .4byte 0x03000900
+_0803A620: .4byte 0x03004790
+_0803A624: .4byte 0x03000800
+_0803A628:
+	mov r0, r10
+	ldr r3, [r0, #0x00]
+	ldrb r0, [r3, #0x0C]
+	lsls r1, r0, #0x01
+	adds r1, r1, r0
+	adds r1, r5, r1
+	lsls r1, r1, #0x05
+	adds r0, r4, #0x0
+	adds r0, #0xA5
+	adds r1, r1, r0
+	lsls r1, r1, #0x01
+	mov r2, r8
+	ldrb r0, [r2, #0x00]
+	lsls r0, r0, #0x0B
+	adds r1, r1, r0
+	add r1, r12
+	ldr r6, _0803A6CC @ =0x03004790
+	ldr r0, [r6, #0x1C]
+	.thumb_func
+FUN_0803a64c: @ 0803A64C
+	ldr r7, [sp, #0x008]
+	adds r2, r7, r4
+	lsls r2, r2, #0x01
+	adds r0, r2, r0
+	movs r6, #0x9D
+	lsls r6, r6, #0x01
+	adds r0, r0, r6
+	ldrh r0, [r0, #0x00]
+	strh r0, [r1, #0x00]
+	ldrb r0, [r3, #0x0C]
+	lsls r1, r0, #0x01
+	adds r1, r1, r0
+	adds r1, r5, r1
+	lsls r1, r1, #0x05
+	adds r0, r4, #0x0
+	adds r0, #0xB7
+	adds r1, r1, r0
+	lsls r1, r1, #0x01
+	mov r7, r8
+	ldrb r0, [r7, #0x00]
+	.thumb_func
+FUN_0803a674: @ 0803A674
+	lsls r0, r0, #0x0B
+	adds r1, r1, r0
+	add r1, r12
+	ldr r3, _0803A6CC @ =0x03004790
+	ldr r0, [r3, #0x1C]
+	adds r2, r2, r0
+	adds r6, #0x24
+	adds r0, r2, r6
+	ldrh r0, [r0, #0x00]
+_0803A686:
+	strh r0, [r1, #0x00]
+	adds r0, r4, #0x1
+	lsls r0, r0, #0x18
+	lsrs r4, r0, #0x18
+	cmp r4, #0x01
+	bls _0803A598
+	mov r7, r9
+	lsls r0, r7, #0x18
+	lsrs r5, r0, #0x18
+	cmp r5, #0x01
+	bhi _0803A69E
+	b _0803A58A
+_0803A69E:
+	ldr r0, [sp, #0x004]
+	cmp r0, #0x00
+	beq _0803A6B8
+	ldr r1, _0803A6D0 @ =0x081166F8
+	ldr r0, _0803A6D4 @ =0x030034C0
+	ldrb r0, [r0, #0x00]
+	lsls r0, r0, #0x02
+	subs r0, #0x01
+	ldr r2, [sp, #0x004]
+	adds r0, r2, r0
+	adds r0, r0, r1
+	ldrb r0, [r0, #0x00]
+	str r0, [sp, #0x004]
+_0803A6B8:
+	ldr r0, [sp, #0x004]
+	subs r0, #0x01
+	cmp r0, #0x05
+	bls _0803A6C2
+	b _0803A88E
+_0803A6C2:
+	lsls r0, r0, #0x02
+	ldr r1, _0803A6D8 @ =0x0803A6DC
+	adds r0, r0, r1
+	ldr r0, [r0, #0x00]
+	mov pc, r0
+_0803A6CC: .4byte 0x03004790
+_0803A6D0: .4byte 0x081166F8
+_0803A6D4: .4byte 0x030034C0
+_0803A6D8: .4byte 0x0803A6DC
+	.4byte 0x0803A6F4
+	.4byte 0x0803A73C
+	.4byte 0x0803A790
+	.4byte 0x0803A7F0
+	.4byte 0x0803A814
+	.4byte 0x0803A864
+	ldr r2, [pc, #0x03C] @ =0x03003510
+	ldr r0, [pc, #0x040] @ =0x080006CD
+	str r0, [r2, #0x28]
+	movs r1, #0x00
+	adds r3, r2, #0x0
+	adds r3, #0x28
+	ldr r0, [r3, #0x28]
+	stm r3!, {r0}
+	adds r1, #0x01
+	cmp r1, #0x09
+	.2byte 0xD9FA @ bls _0803A700
+	adds r0, r2, #0x0
+	adds r0, #0x78
+	ldrb r0, [r0, #0x00]
+	subs r0, #0x01
+	lsls r0, r0, #0x02
+	adds r0, r0, r2
+	movs r1, #0x00
+	str r1, [r0, #0x00]
+	adds r0, r2, #0x0
+	adds r0, #0x7A
+	ldrb r1, [r0, #0x00]
+	subs r0, #0x01
+	strb r1, [r0, #0x00]
+	bl UpdateOamSortOrder
+	bl m4aSoundVSyncOn
+	bl StopSoundEffects
+	b _0803A88E
+	lsls r0, r0, #0x00
+	.4byte 0x03003510
+	.4byte 0x080006CD
+	bl UpdateOamSortOrder
+	ldr r1, [pc, #0x034] @ =0x03003510
+	ldr r0, [pc, #0x038] @ =0x0802502D
+	str r0, [r1, #0x04]
+	ldr r3, [pc, #0x038] @ =0x03005220
+	ldr r0, [pc, #0x038] @ =0x03005284
+	ldr r1, [r0, #0x00]
+	ldr r0, [r1, #0x18]
+	str r0, [r3, #0x04]
+	ldrb r2, [r1, #0x00]
+	adds r0, r3, #0x0
+	adds r0, #0x4C
+	movs r4, #0x00
+	strb r2, [r0, #0x00]
+	ldrb r1, [r1, #0x08]
+	lsls r1, r1, #0x1E
+	lsrs r1, r1, #0x1E
+	ldrb r2, [r3, #0x00]
+	movs r0, #0x04
+	negs r0, r0
+	ands r0, r2
+	orrs r0, r1
+	strb r0, [r3, #0x00]
+	ldr r0, [pc, #0x018] @ =0x04000050
+	movs r1, #0x00
+	strh r4, [r0, #0x00]
+	ldr r0, [pc, #0x018] @ =0x03005498
+	strb r1, [r0, #0x00]
+	b _0803A88E
+	.4byte 0x03003510
+	.4byte 0x0802502D
+	.4byte 0x03005220
+	.4byte 0x03005284
+	lsls r0, r2, #0x01
+	lsls r0, r0, #0x10
+	.4byte 0x03005498
+	ldr r0, [pc, #0x040] @ =0x03005284
+	ldr r1, [r0, #0x00]
+	ldr r0, FUN_0803a7d8 @ =0x03005220
+	ldrb r2, [r1, #0x1E]
+	adds r0, #0x4C
+	movs r5, #0x00
+	strb r2, [r0, #0x00]
+	ldrb r0, [r1, #0x1E]
+	strb r0, [r1, #0x00]
+	bl UpdateOamSortOrder
+	ldr r0, [pc, #0x034] @ =0x03005498
+	strb r5, [r0, #0x00]
+	ldr r4, [pc, #0x034] @ =0x03004C20
+	ldrh r1, [r4, #0x0C]
+	movs r0, #0xC1
+	lsls r0, r0, #0x03
+	cmp r1, r0
+	.2byte 0xD101 @ bne _0803A7BA
+	movs r0, #0x05
+	strb r0, [r4, #0x0D]
+	ldr r3, [pc, #0x028] @ =0x030034B0
+	ldrb r1, [r4, #0x0C]
+	lsls r1, r1, #0x04
+	ldrb r2, [r3, #0x06]
+	movs r0, #0x0F
+	ands r0, r2
+	orrs r0, r1
+	strb r0, [r3, #0x06]
+	strb r5, [r4, #0x0C]
+	ldr r1, [pc, #0x018] @ =0x03003510
+	ldr r0, [pc, #0x01C] @ =0x08024C35
+	str r0, [r1, #0x04]
+	b _0803A88E
+	.4byte 0x03005284
+	.thumb_func
+FUN_0803a7d8: @ 0803A7D8
+	.4byte 0x03005220
+	.4byte 0x03005498
+	.4byte 0x03004C20
+	.4byte 0x030034B0
+	.4byte 0x03003510
+	.4byte 0x08024C35
+	ldr r1, _0803A808 @ =0x03003510
+	ldr r0, _0803A80C @ =0x0803A8B9
+	str r0, [r1, #0x04]
+	ldr r4, _0803A810 @ =0x03004790
+	ldr r0, [r4, #0x1C]
+	bl thunk_FUN_0800020c
+	ldr r0, [r4, #0x18]
+	bl thunk_FUN_0800020c
+	b _0803A88E
+	lsls r0, r0, #0x00
+_0803A808: .4byte 0x03003510
+_0803A80C: .4byte 0x0803A8B9
+_0803A810: .4byte 0x03004790
+	ldr r0, [pc, #0x030] @ =0x03004C20
+	ldrb r0, [r0, #0x0C]
+	cmp r0, #0x00
+	.2byte 0xD007 @ beq _0803A82C
+	ldr r0, [pc, #0x02C] @ =0x03005284
+	ldr r1, [r0, #0x00]
+	ldr r0, [pc, #0x02C] @ =0x03005220
+	ldrb r2, [r1, #0x1E]
+	adds r0, #0x4C
+	strb r2, [r0, #0x00]
+	ldrb r0, [r1, #0x1E]
+	strb r0, [r1, #0x00]
+	bl UpdateOamSortOrder
+	ldr r0, [pc, #0x020] @ =0x04000050
+	movs r1, #0x00
+	strh r1, [r0, #0x00]
+	ldr r0, [pc, #0x020] @ =0x03005498
+	strb r1, [r0, #0x00]
+	bl FreeAllDecompBuffers
+	ldr r1, [pc, #0x01C] @ =0x03003510
+	ldr r0, [pc, #0x01C] @ =0x08025819
+	str r0, [r1, #0x04]
+	b _0803A88E
+	lsls r0, r0, #0x00
+	.4byte 0x03004C20
+	.4byte 0x03005284
+	.4byte 0x03005220
+	lsls r0, r2, #0x01
+	lsls r0, r0, #0x10
+	.4byte 0x03005498
+	.4byte 0x03003510
+	.4byte 0x08025819
+_0803A864: .4byte 0x2000490E
+	strb r0, [r1, #0x00]
+	ldr r1, [pc, #0x038] @ =0x03004C20
+	movs r2, #0x00
+	movs r0, #0x09
+	strb r0, [r1, #0x0C]
+	ldr r0, [pc, #0x034] @ =0x03004D9C
+	strb r2, [r0, #0x00]
+	bl InitOamEntries
+	ldr r1, [pc, #0x030] @ =0x03003510
+	ldr r0, [pc, #0x030] @ =0x08025901
+	str r0, [r1, #0x04]
+	ldr r4, [pc, #0x030] @ =0x03004790
+	ldr r0, [r4, #0x1C]
+	bl thunk_FUN_0800020c
+	ldr r0, [r4, #0x18]
+	bl thunk_FUN_0800020c
+_0803A88E:
+	add sp, #0x00C
+	pop {r3, r4, r5}
+	mov r8, r3
+	mov r9, r4
+	mov r10, r5
+	pop {r4, r5, r6, r7}
+	pop {r0}
+	bx r0
+	lsls r0, r0, #0x00
+	.4byte 0x03005498
+	.4byte 0x03004C20
+	.4byte 0x03004D9C
+	.4byte 0x03003510
+	.4byte 0x08025901
+	.4byte 0x03004790
+	push {r4, r5, r6, r7, lr}
+	mov r7, r10
+	mov r6, r9
+	mov r5, r8
+	push {r5, r6, r7}
+	ldr r0, [pc, #0x00C] @ =0x030034BC
+_0803A8C4: .4byte 0x28007800
+	.2byte 0xD106 @ bne _0803A8D8
+	ldr r0, [pc, #0x008] @ =0x03000800
+	ldrb r7, [r0, #0x00]
+	.2byte 0xE004 @ b _0803A8DA
+	.4byte 0x030034BC
+	.4byte 0x03000800
+	movs r7, #0x00
+	ldr r2, [pc, #0x0AC] @ =0x04000200
+	ldrh r1, [r2, #0x00]
+	ldr r0, [pc, #0x0AC] @ =0x0000FFFE
+	ands r0, r1
+	strh r0, [r2, #0x00]
+	ldr r2, [pc, #0x0A8] @ =0x04000004
+	ldrh r1, [r2, #0x00]
+	ldr r0, [pc, #0x0A8] @ =0x0000FFF7
+	ands r0, r1
+	strh r0, [r2, #0x00]
+	bl m4aSoundVSyncOff
+	ldr r0, [pc, #0x0A4] @ =0x082EC8F4
+	mov r8, r0
+	ldr r0, [r0, #0x00]
+	ldr r5, [pc, #0x0A0] @ =0x7FFFFFFF
+	ands r0, r5
+	movs r1, #0x00
+	bl thunk_FUN_080001e0
+	ldr r4, [pc, #0x09C] @ =0x03004790
+	str r0, [r4, #0x18]
+	ldr r6, [pc, #0x09C] @ =0x082ECD74
+	ldr r0, [r6, #0x00]
+	ands r0, r5
+	movs r1, #0x00
+	bl thunk_FUN_080001e0
+	str r0, [r4, #0x1C]
+	ldr r0, [r4, #0x18]
+	mov r1, r8
+	bl DecompressData
+	ldr r0, [r4, #0x1C]
+	adds r1, r6, #0x0
+	bl DecompressData
+	movs r5, #0x00
+	movs r6, #0x00
+	lsls r1, r7, #0x05
+	mov r10, r1
+	ldr r2, [pc, #0x078] @ =0x03000900
+	mov r9, r2
+	ldr r3, [pc, #0x078] @ =0x0000021B
+	mov r8, r3
+	adds r0, r5, #0x0
+	movs r1, #0x1E
+	bl FUN_0805193c
+	cmp r0, #0x00
+	.2byte 0xD102 @ bne _0803A946
+	cmp r5, #0x00
+	.2byte 0xD000 @ beq _0803A946
+	adds r6, #0x02
+	lsls r2, r6, #0x01
+	ldr r0, [pc, #0x064] @ =0x030034BC
+	ldrb r0, [r0, #0x00]
+	lsls r0, r0, #0x0B
+	adds r2, r2, r0
+	add r2, r9
+	ldr r0, [pc, #0x04C] @ =0x03004790
+	ldr r1, [r0, #0x1C]
+	lsls r0, r5, #0x01
+	adds r0, r0, r1
+	ldrh r0, [r0, #0x04]
+	adds r0, r0, r7
+	strh r0, [r2, #0x00]
+	adds r6, #0x01
+	adds r5, #0x01
+	cmp r5, r8
+	.2byte 0xDDE5 @ ble _0803A934
+	ldr r1, [pc, #0x048] @ =0x04000042
+	movs r0, #0xF0
+	strh r0, [r1, #0x00]
+	adds r1, #0x04
+	ldr r2, [pc, #0x044] @ =0x00001E90
+	adds r0, r2, #0x0
+	strh r0, [r1, #0x00]
+	ldr r3, [pc, #0x038] @ =0x030034BC
+	ldrb r0, [r3, #0x00]
+	cmp r0, #0x00
+	.2byte 0xD120 @ bne _0803A9C0
+	adds r1, #0x02
+	ldr r2, [pc, #0x038] @ =0x00003621
+	adds r0, r2, #0x0
+	.2byte 0xE01F @ b _0803A9C6
+	lsls r0, r0, #0x00
+	lsls r0, r0, #0x08
+	lsls r0, r0, #0x10
+	.2byte 0xFFFE @ bl lr+4092
+	lsls r0, r0, #0x00
+	lsls r4, r0, #0x00
+	lsls r0, r0, #0x10
+	.2byte 0xFFF7 @ bl lr+4078
+	lsls r0, r0, #0x00
+	.4byte 0x082EC8F4
+	.2byte 0xFFFF @ bl lr+4094
+	ldrb r7, [r7, #0x1F]
+	.4byte 0x03004790
+	.inst 0xCD74
+	.2byte 0x082E
+	.4byte 0x03000900
+	lsls r3, r3, #0x08
+	lsls r0, r0, #0x00
+	.4byte 0x030034BC
+	lsls r2, r0, #0x01
+	lsls r0, r0, #0x10
+	subs r0, r2, #0x2
+	lsls r0, r0, #0x00
+	adds r6, #0x21
+	lsls r0, r0, #0x00
+	ldr r1, [pc, #0x014] @ =0x04000048
+	ldr r3, [pc, #0x018] @ =0x00003521
+	adds r0, r3, #0x0
+	strh r0, [r1, #0x00]
+	ldr r0, [pc, #0x014] @ =0x03004C20
+	ldrb r0, [r0, #0x0C]
+	cmp r0, #0x08
+	.2byte 0xD10D @ bne _0803A9EC
+	ldr r1, [pc, #0x010] @ =0x03003510
+	ldr r0, [pc, #0x014] @ =0x0800C109
+	.2byte 0xE00C @ b _0803A9F0
+	lsls r0, r0, #0x00
+	lsls r0, r1, #0x01
+	lsls r0, r0, #0x10
+	adds r5, #0x21
+	lsls r0, r0, #0x00
+	.4byte 0x03004C20
+	.4byte 0x03003510
+	.4byte 0x0800C109
+	ldr r1, [pc, #0x080] @ =0x03003510
+	ldr r0, [pc, #0x084] @ =0x0800BFF5
+	str r0, [r1, #0x30]
+	ldr r0, [pc, #0x084] @ =0x080006CD
+	str r0, [r1, #0x28]
+	ldr r0, [pc, #0x084] @ =0x0803AAA1
+	str r0, [r1, #0x2C]
+	movs r0, #0x01
+	str r0, [r1, #0x34]
+	adds r0, r1, #0x0
+	adds r0, #0x78
+	ldrb r0, [r0, #0x00]
+	subs r0, #0x01
+	lsls r0, r0, #0x02
+	adds r0, r0, r1
+	movs r4, #0x00
+	str r4, [r0, #0x00]
+	adds r1, #0x79
+	movs r0, #0x04
+	strb r0, [r1, #0x00]
+	ldr r2, [pc, #0x068] @ =0x040000D4
+	ldr r1, [pc, #0x06C] @ =0x03004790
+	ldr r0, [r1, #0x18]
+	adds r0, #0x04
+	str r0, [r2, #0x00]
+	ldr r3, [pc, #0x068] @ =0x03003430
+	ldr r0, [pc, #0x068] @ =0x030034BC
+	ldrb r1, [r0, #0x00]
+	lsls r0, r1, #0x03
+	subs r0, r0, r1
+	lsls r0, r0, #0x02
+	adds r0, r0, r3
+	ldr r0, [r0, #0x00]
+	add r0, r10
+	str r0, [r2, #0x04]
+	ldr r0, [pc, #0x05C] @ =0x800005C0
+	str r0, [r2, #0x08]
+	ldr r0, [r2, #0x08]
+	subs r2, #0xD4
+	ldrh r0, [r2, #0x00]
+	movs r3, #0x80
+	lsls r3, r3, #0x07
+	adds r1, r3, #0x0
+	orrs r0, r1
+	strh r0, [r2, #0x00]
+	ldr r2, [pc, #0x04C] @ =0x04000200
+	ldrh r0, [r2, #0x00]
+	movs r1, #0x01
+	orrs r0, r1
+	strh r0, [r2, #0x00]
+	ldr r2, [pc, #0x044] @ =0x04000004
+	ldrh r0, [r2, #0x00]
+	movs r1, #0x08
+	orrs r0, r1
+	strh r0, [r2, #0x00]
+	bl m4aSoundVSyncOn
+	ldr r0, [pc, #0x03C] @ =0x03004C20
+	str r4, [r0, #0x00]
+	pop {r3, r4, r5}
+	mov r8, r3
+	mov r9, r4
+	mov r10, r5
+	pop {r4, r5, r6, r7}
+	pop {r0}
+	bx r0
+	.4byte 0x03003510
+	.4byte 0x0800BFF5
+	.4byte 0x080006CD
+	.4byte 0x0803AAA1
+	lsls r4, r2, #0x03
+	lsls r0, r0, #0x10
+	.4byte 0x03004790
+	.4byte 0x03003430
+	.4byte 0x030034BC
+	lsls r0, r0, #0x17
+	strh r0, [r0, #0x00]
+	lsls r0, r0, #0x08
+	lsls r0, r0, #0x10
+	lsls r4, r0, #0x00
+	lsls r0, r0, #0x10
+	.4byte 0x03004C20
+```
+
+# Rules
+
+- In order to decompile this function, you may need to create new types. Include them on the result.
+
+- SHOW THE ENTIRE CODE WITHOUT CROPPING.

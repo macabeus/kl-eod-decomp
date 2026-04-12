@@ -1,0 +1,15 @@
+functionName: ply_bend
+targetObjectPath: /Users/macabeus/ApenasMeu/decompiler/klonoa-empire-of-dreams/build/src/m4a.o
+asm: |
+  	non_word_aligned_thumb_func_start ply_bend
+  ply_bend: @ 080513E2
+  	ldr r0, [r1, #0x40]
+  	ldrb r0, [r0, #0x00]
+  	adds r2, r1, #0x0
+  	adds r2, #0x2F
+  	strb r0, [r2, #0x00]
+  	ldr r0, [r1, #0x40]
+  	adds r0, #0x01
+  	str r0, [r1, #0x40]
+  	bx lr
+  	lsls r0, r0, #0x00

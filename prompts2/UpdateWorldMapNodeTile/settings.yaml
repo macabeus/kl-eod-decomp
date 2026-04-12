@@ -1,0 +1,159 @@
+functionName: UpdateWorldMapNodeTile
+targetObjectPath: /Users/macabeus/ApenasMeu/decompiler/klonoa-empire-of-dreams/build/src/code_3.o
+asm: |-
+  	thumb_func_start UpdateWorldMapNodeTile
+  UpdateWorldMapNodeTile: @ 0803AF38
+  	push {r4, r5, r6, lr}
+  	add sp, #-0x004
+  	lsls r0, r0, #0x18
+  	lsrs r3, r0, #0x18
+  	cmp r3, #0x03
+  	bhi _0803AFD4
+  	ldr r6, _0803AFC8 @ =0x03000900
+  	ldr r4, _0803AFCC @ =0x08116748
+  	lsls r5, r3, #0x03
+  	adds r2, r5, r4
+  	adds r0, r4, #0x1
+  	adds r0, r5, r0
+  	ldrb r1, [r0, #0x00]
+  	lsls r1, r1, #0x05
+  	ldrb r2, [r2, #0x00]
+  	adds r1, r1, r2
+  	lsls r1, r1, #0x01
+  	movs r0, #0x80
+  	lsls r0, r0, #0x04
+  	adds r6, r6, r0
+  	adds r1, r1, r6
+  	ldr r0, _0803AFD0 @ =0x08116880
+  	adds r0, r3, r0
+  	ldrb r3, [r0, #0x00]
+  	adds r3, #0x1C
+  	lsls r0, r3, #0x06
+  	adds r0, r0, r6
+  	ldrh r0, [r0, #0x00]
+  	strh r0, [r1, #0x00]
+  	adds r2, r4, #0x2
+  	adds r2, r5, r2
+  	adds r0, r4, #0x3
+  	adds r0, r5, r0
+  	ldrb r1, [r0, #0x00]
+  	lsls r1, r1, #0x05
+  	ldrb r2, [r2, #0x00]
+  	adds r1, r1, r2
+  	lsls r1, r1, #0x01
+  	adds r1, r1, r6
+  	lsls r3, r3, #0x05
+  	adds r0, r3, #0x1
+  	lsls r0, r0, #0x01
+  	adds r0, r0, r6
+  	ldrh r0, [r0, #0x00]
+  	strh r0, [r1, #0x00]
+  	adds r2, r4, #0x4
+  	adds r2, r5, r2
+  	adds r0, r4, #0x5
+  	adds r0, r5, r0
+  	ldrb r1, [r0, #0x00]
+  	lsls r1, r1, #0x05
+  	ldrb r2, [r2, #0x00]
+  	adds r1, r1, r2
+  	lsls r1, r1, #0x01
+  	adds r1, r1, r6
+  	adds r0, r3, #0x2
+  	lsls r0, r0, #0x01
+  	adds r0, r0, r6
+  	ldrh r0, [r0, #0x00]
+  	strh r0, [r1, #0x00]
+  	adds r1, r4, #0x6
+  	adds r1, r5, r1
+  	adds r4, #0x07
+  	adds r5, r5, r4
+  	ldrb r0, [r5, #0x00]
+  	lsls r0, r0, #0x05
+  	ldrb r1, [r1, #0x00]
+  	adds r0, r0, r1
+  	lsls r0, r0, #0x01
+  	adds r0, r0, r6
+  	adds r3, #0x03
+  	b _0803B058
+  _0803AFC8: .4byte 0x03000900
+  _0803AFCC: .4byte 0x08116748
+  _0803AFD0: .4byte 0x08116880
+  _0803AFD4:
+  	ldr r6, _0803B068 @ =0x03000900
+  	ldr r4, _0803B06C @ =0x08116748
+  	lsls r5, r3, #0x03
+  	adds r2, r5, r4
+  	adds r0, r4, #0x1
+  	adds r0, r5, r0
+  	ldrb r1, [r0, #0x00]
+  	lsls r1, r1, #0x05
+  	ldrb r2, [r2, #0x00]
+  	adds r1, r1, r2
+  	lsls r1, r1, #0x01
+  	movs r0, #0x80
+  	lsls r0, r0, #0x04
+  	adds r6, r6, r0
+  	adds r1, r1, r6
+  	ldr r0, _0803B070 @ =0x08116880
+  	adds r0, r3, r0
+  	ldrb r3, [r0, #0x00]
+  	adds r3, #0x1C
+  	lsls r3, r3, #0x05
+  	adds r0, r3, #0x4
+  	lsls r0, r0, #0x01
+  	adds r0, r0, r6
+  	ldrh r0, [r0, #0x00]
+  	strh r0, [r1, #0x00]
+  	adds r2, r4, #0x2
+  	adds r2, r5, r2
+  	adds r0, r4, #0x3
+  	adds r0, r5, r0
+  	ldrb r1, [r0, #0x00]
+  	lsls r1, r1, #0x05
+  	ldrb r2, [r2, #0x00]
+  	adds r1, r1, r2
+  	lsls r1, r1, #0x01
+  	adds r1, r1, r6
+  	adds r0, r3, #0x5
+  	lsls r0, r0, #0x01
+  	adds r0, r0, r6
+  	ldrh r0, [r0, #0x00]
+  	strh r0, [r1, #0x00]
+  	adds r2, r4, #0x4
+  	adds r2, r5, r2
+  	adds r0, r4, #0x5
+  	adds r0, r5, r0
+  	ldrb r1, [r0, #0x00]
+  	lsls r1, r1, #0x05
+  	ldrb r2, [r2, #0x00]
+  	adds r1, r1, r2
+  	lsls r1, r1, #0x01
+  	adds r1, r1, r6
+  	adds r0, r3, #0x6
+  	lsls r0, r0, #0x01
+  	adds r0, r0, r6
+  	ldrh r0, [r0, #0x00]
+  	strh r0, [r1, #0x00]
+  	adds r1, r4, #0x6
+  	adds r1, r5, r1
+  	adds r4, #0x07
+  	adds r5, r5, r4
+  	ldrb r0, [r5, #0x00]
+  	lsls r0, r0, #0x05
+  	ldrb r1, [r1, #0x00]
+  	adds r0, r0, r1
+  	lsls r0, r0, #0x01
+  	adds r0, r0, r6
+  	adds r3, #0x07
+  _0803B058:
+  	lsls r3, r3, #0x01
+  	adds r3, r3, r6
+  	ldrh r1, [r3, #0x00]
+  	strh r1, [r0, #0x00]
+  	add sp, #0x004
+  	pop {r4, r5, r6}
+  	pop {r0}
+  	bx r0
+  _0803B068: .4byte 0x03000900
+  _0803B06C: .4byte 0x08116748
+  _0803B070: .4byte 0x08116880

@@ -1,0 +1,17 @@
+functionName: FixedMul4
+targetObjectPath: /Users/macabeus/ApenasMeu/decompiler/klonoa-empire-of-dreams/build/src/math.o
+asm: |-
+  	non_word_aligned_thumb_func_start FixedMul4
+  FixedMul4: @ 08000992
+  	lsls r0, r0, #0x10
+  	asrs r0, r0, #0x10
+  	lsls r1, r1, #0x10
+  	asrs r1, r1, #0x10
+  	muls r0, r1
+  	adds r1, r0, #0x0
+  	cmp r0, #0x00
+  	.2byte 0xDA00 @ bge _080009A2
+  	adds r1, #0x0F
+  	lsls r0, r1, #0x0C
+  	asrs r0, r0, #0x10
+  	bx lr

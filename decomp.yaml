@@ -1,0 +1,39 @@
+name: kl-eod-decomp
+repo: https://github.com/Dream-Atelier/kl-eod-decomp
+platform: gba
+build_system: make
+versions:
+  - name: us
+    fullname: US
+    sha1: a0a298d9dba1ba15d04a42fc2eb35893d1a9569b
+    paths:
+      target: "baserom.gba"
+
+      build_dir: "./"
+      map: "klonoa-eod.map"
+      compiled_target: "klonoa-eod.gba"
+      elf: "klonoa-eod.elf"
+
+      expected_dir: "expected"
+      asm: "asm"
+      nonmatchings: "asm/nonmatchings"
+
+tools:
+  transmuter:
+    compiler: |
+      ASM_DIR="$(dirname "{{outputPath}}")"
+      ASM_FILE="$ASM_DIR/$(basename "{{outputPath}}" .o).s"
+
+      ./tools/agbcc/bin/agbcc \
+        "{{inputPath}}" -o "$ASM_FILE" \
+        -mthumb-interwork -Wimplicit \
+        -Wparentheses -Werror -O2 -g -fhex-asm
+
+      sed -i '' '/\.size/d' "$ASM_FILE"
+
+      arm-none-eabi-as -mcpu=arm7tdmi -mthumb-interwork "$ASM_FILE" -o "{{outputPath}}"
+    concurrency: 8
+    reduce: true
+    ruleWeights:
+      asm-barrier: 25
+      pad-var-decl: 20

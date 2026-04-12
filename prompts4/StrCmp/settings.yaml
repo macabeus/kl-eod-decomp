@@ -1,0 +1,16 @@
+functionName: StrCmp
+targetObjectPath: /Users/macabeus/ApenasMeu/decompiler/klonoa-empire-of-dreams/build/src/system.o
+asm: |
+  	thumb_func_start StrCmp
+  StrCmp: @ 08000448
+  	ldrb r2, [r0, #0x00]
+  	ldrb r3, [r1, #0x00]
+  	cmp r2, r3
+  	bne _0800045C
+  	adds r0, #0x01
+  	adds r1, #0x01
+  	cmp r3, #0x00
+  	bne StrCmp
+  	movs r0, #0x00
+  	bx lr
+  _0800045C:

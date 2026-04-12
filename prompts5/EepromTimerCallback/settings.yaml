@@ -1,0 +1,21 @@
+functionName: EepromTimerCallback
+targetObjectPath: /Users/macabeus/ApenasMeu/decompiler/klonoa-empire-of-dreams/build/src/util.o
+asm: |-
+  	non_word_aligned_thumb_func_start EepromTimerCallback
+  EepromTimerCallback: @ 080514B2
+  	ldr r1, [pc, #0x018] @ =0x0300037A
+  	ldrh r0, [r1, #0x00]
+  	cmp r0, #0x00
+  	.2byte 0xD008 @ beq _080514CA
+  	ldrh r0, [r1, #0x00]
+  	subs r0, #0x01
+  	strh r0, [r1, #0x00]
+  	lsls r0, r0, #0x10
+  	cmp r0, #0x00
+  	.2byte 0xD102 @ bne _080514CA
+  	ldr r1, [pc, #0x008] @ =0x0300037C
+  	movs r0, #0x01
+  	strb r0, [r1, #0x00]
+  	bx lr
+  	.4byte 0x0300037A
+  	.4byte 0x0300037C

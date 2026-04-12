@@ -1,0 +1,19 @@
+functionName: StreamCmd_ClearRenderMode
+targetObjectPath: /Users/macabeus/ApenasMeu/decompiler/klonoa-empire-of-dreams/build/src/gfx.o
+asm: |-
+  	non_word_aligned_thumb_func_start StreamCmd_ClearRenderMode
+  StreamCmd_ClearRenderMode: @ 0804E42A
+  	ldr r0, [pc, #0x014] @ =0x030034A0
+  	ldr r2, [r0, #0x00]
+  	ldrb r1, [r2, #0x00]
+  	movs r0, #0x04
+  	negs r0, r0
+  	ands r0, r1
+  	strb r0, [r2, #0x00]
+  	ldr r1, [pc, #0x00C] @ =0x03004D84
+  	ldr r0, [r1, #0x00]
+  	adds r0, #0x02
+  	str r0, [r1, #0x00]
+  	bx lr
+  	.4byte 0x030034A0
+  	.4byte 0x03004D84
